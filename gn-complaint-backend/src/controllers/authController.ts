@@ -59,14 +59,7 @@ export const login = async (req: any, res: any) => {
 
         const user = result.rows[0];
         
-        /* CHECK IF USER IS BLOCKED */
-
-        if (user.status === "Blocked") {
-
-            return res.status(403).json({
-                message: "Your account has been blocked by admin"
-            });
-        }
+     
         
         // check password
         const isMatch = await bcrypt.compare(password, user.password);
@@ -79,7 +72,7 @@ export const login = async (req: any, res: any) => {
         // create token
         const token = jwt.sign(
             {
-                id: user.user_id,
+                user_id: user.user_id,
                 email: user.email,
                 role: user.role
             },

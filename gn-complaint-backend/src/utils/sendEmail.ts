@@ -1,0 +1,42 @@
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+export const sendEmail = async (
+  to: string,
+  subject: string,
+  html: string
+) => {
+  try {
+
+    console.log("📧 Sending email to:", to);
+
+    
+
+    const info = await transporter.sendMail({
+      from: `"GN Complaint Management System" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+
+    console.log("✅ Email sent successfully");
+    console.log("Message ID:", info.messageId);
+
+  } catch (error) {
+
+    console.error("❌ Email Error:");
+    console.error(error);
+
+    throw error; // important for debugging
+  }
+};

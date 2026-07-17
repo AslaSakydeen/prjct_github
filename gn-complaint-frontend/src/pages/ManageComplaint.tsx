@@ -1,9 +1,26 @@
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+} from "react-leaflet";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
 interface Complaint {
-  complaint_id: number;
+   complaint_id: number;
   user_id: number;
   title: string;
   phone: string;
@@ -11,7 +28,8 @@ interface Complaint {
   priority: string;
   location: string;
   description: string;
-  complaint_image: string;
+  image_url: string;
+  resolution_proof?: string;
   complaint_date: string;
   status: string;
   admin_response: string;
@@ -38,6 +56,9 @@ export default function ManageComplaint() {
 
   const [adminResponse, setAdminResponse] =
     useState("");
+
+    const [resolutionProof, setResolutionProof] =
+  useState<File | null>(null);
 
   // DELETE CONFIRM MODAL
   const [showDeleteConfirm, setShowDeleteConfirm] =
@@ -83,6 +104,20 @@ export default function ManageComplaint() {
     }
   );
 
+  const updatePriority = async (
+    id: number,
+    priority: string
+) => {
+    await axios.put(
+        `http://localhost:5000/api/complaints/${id}/priority`,
+        {
+            priority,
+        }
+    );
+
+    fetchComplaints();
+};
+
   // OPEN MODAL
   const openModal = (complaint: Complaint) => {
     setSelectedComplaint(complaint);
@@ -101,26 +136,44 @@ export default function ManageComplaint() {
   };
 
   // SAVE
-  const handleSave = async () => {
+ const handleSave = async () => {
   if (!selectedComplaint) return;
 
   try {
-    await axios.put(
+    const formData = new FormData();
+
+    formData.append("status", status);
+    formData.append("admin_response",adminResponse);
+    formData.append("priority", selectedComplaint.priority);
+
+    if (resolutionProof) {
+      formData.append(
+        "resolutionProof",
+        resolutionProof
+      );
+    }
+
+    const response = await axios.put(
       `http://localhost:5000/api/complaints/${selectedComplaint.complaint_id}`,
+      formData,
       {
-        status,
-        admin_response: adminResponse,
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
       }
     );
+
+    console.log(response.data);
 
     alert("Complaint Updated");
 
     fetchComplaints();
-
-    setSelectedComplaint(null);
+    closeModal();
 
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    alert("Update Failed");
   }
 };
 
@@ -129,23 +182,42 @@ export default function ManageComplaint() {
   if (!selectedComplaint) return;
 
   try {
-    await axios.delete(
+    const response = await axios.delete(
       `http://localhost:5000/api/complaints/${selectedComplaint.complaint_id}`
     );
 
-    alert("Complaint Deleted");
+    console.log(response.data);
+
+    alert("Complaint Deleted Successfully");
 
     setShowDeleteConfirm(false);
-
     setSelectedComplaint(null);
 
-    fetchComplaints();
+    fetchComplaints(); // refresh table
 
-  } catch (err) {
-    console.log(err);
+  } catch (err: any) {
+    console.log("DELETE ERROR:", err);
+
+    alert(
+      err.response?.data?.message || "Delete failed"
+    );
   }
 };
 
+let lat = 6.9271;
+let lng = 79.8612;
+
+if (selectedComplaint?.location) {
+  const matches =
+    selectedComplaint.location.match(
+      /Latitude:\s*([-\d.]+).*Longitude:\s*([-\d.]+)/s
+    );
+
+  if (matches) {
+    lat = parseFloat(matches[1]);
+    lng = parseFloat(matches[2]);
+  }
+}
   return (
     <>
       <style>
@@ -280,6 +352,7 @@ border-bottom:1px solid #ddd;
 
 .view-btn{
 background:#0d5c11;
+margin-bottom:10px;
 color:white;
 border:none;
 padding:8px 14px;
@@ -303,100 +376,124 @@ z-index:1000;
 }
 
 .modal-box{
-width:500px;
-background:#f5f5f0;
-padding:30px;
-border-radius:25px;
-position:relative;
-z-index:1001;
+width:1100px;
+max-width:95vw;
+background:#eef2ee;
+padding:25px;
+border-radius:10px;
 max-height:90vh;
+overflow-y:auto;
+position:relative;
 overflow-y:auto;
 }
 
-.modal-box h2{
-text-align:center;
-color:#0b5d13;
-margin-bottom:25px;
+.edit-form{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin-top:20px;
 }
 
-.details p{
-margin:12px 0 5px;
+.form-column{
+display:flex;
+flex-direction:column;
+gap:10px;
 }
 
-.description-box,
-.response-box{
+.form-column label{
+font-size:13px;
+font-weight:600;
+color:#21572b;
+}
+
+.form-column input,
+.form-column select,
+.form-column textarea{
 width:100%;
-height:90px;
-border-radius:10px;
-border:1px solid #ccc;
-padding:10px;
+padding:8px;
+border:1px solid #d6d6d6;
+background:white;
+border-radius:3px;
+}
+
+.large-textarea{
+height:120px;
 resize:none;
 }
 
-.complaint-image{
-width:180px;
-height:140px;
-object-fit:cover;
-border-radius:10px;
-border:1px solid #ccc;
+.medium-textarea{
+height:80px;
+resize:none;
 }
 
-.no-image{
-width:180px;
-height:140px;
-border:1px solid #ccc;
-border-radius:10px;
-display:flex;
-justify-content:center;
-align-items:center;
-color:gray;
+.map-box{
+height:180px;
+border:1px solid #ddd;
+overflow:hidden;
 background:white;
 }
 
-select{
-width:200px;
-padding:10px;
-border-radius:8px;
+.image-box{
+height:180px;
+border:1px solid #ddd;
+background:white;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+}
+
+.complaint-image{
+width:100%;
+height:100%;
+object-fit:cover;
+border:none;
+}
+
+.no-image{
+width:100%;
+height:100%;
+display:flex;
+justify-content:center;
+align-items:center;
+color:#888;
+}
+
+.map-link{
 margin-top:5px;
+font-size:13px;
+text-decoration:none;
+color:#0b5d13;
 }
 
 .button-group{
 display:flex;
-justify-content:space-between;
+justify-content:flex-end;
+gap:15px;
 margin-top:25px;
 }
 
-.cancel-btn,
-.save-btn{
-border:none;
-padding:10px 30px;
-border-radius:10px;
-cursor:pointer;
-color:white;
-font-size:16px;
-}
-
 .cancel-btn{
-background:#0d5c11;
+background:#d9d9d9;
+color:black;
 }
 
 .save-btn{
-background:#0d5c11;
+background:#0b5d13;
+color:white;
 }
 
 .delete-btn{
 position:absolute;
 top:20px;
 right:20px;
-background:red;
+background:#d9534f;
 color:white;
 border:none;
-padding:8px 16px;
-border-radius:10px;
+padding:10px 15px;
+border-radius:4px;
 cursor:pointer;
 }
-
-/* DELETE CONFIRM MODAL */
 
 .confirm-overlay{
 position:fixed;
@@ -413,44 +510,37 @@ z-index:2000;
 
 .confirm-box{
 width:400px;
-background:#f5f5f0;
-padding:35px 30px;
-border-radius:22px;
+background:white;
+padding:30px;
+border-radius:15px;
 text-align:center;
-position:relative;
-z-index:3000;
-}
-
-.confirm-box h3{
-font-size:32px;
-color:black;
-margin-bottom:35px;
-line-height:1.3;
 }
 
 .confirm-buttons{
 display:flex;
 justify-content:center;
-gap:30px;
-}
-
-.confirm-cancel,
-.confirm-delete{
-border:none;
-padding:12px 35px;
-border-radius:10px;
-font-size:17px;
-color:white;
-cursor:pointer;
+gap:20px;
+margin-top:20px;
 }
 
 .confirm-cancel{
 background:#0d7a24;
+color:white;
+border:none;
+padding:10px 25px;
+border-radius:8px;
+cursor:pointer;
 }
 
 .confirm-delete{
 background:red;
+color:white;
+border:none;
+padding:10px 25px;
+border-radius:8px;
+cursor:pointer;
 }
+
 `}
       </style>
 
@@ -471,7 +561,9 @@ background:red;
               Manage Complaint
             </li>
 
-            <li>Manage Review</li>
+            <li onClick={() => navigate("/manageReview")}>
+              Manage Review
+            </li>
 
             <li>Notification</li>
 
@@ -619,8 +711,17 @@ background:red;
                           }
                         >
                           View/Edit
-                        </button>
+                        </button><br></br>
+                         <button
+className="view-btn"
+onClick={()=>navigate(
+`/Report/${complaint.complaint_id}`
+)}
 
+>
+Generate Report
+
+</button>
                       </td>
 
                     </tr>
@@ -645,7 +746,185 @@ background:red;
 
           <div className="modal-box">
 
-            <button
+           
+
+            <h2>
+              View / Edit Complaints
+            </h2>
+
+          <div className="edit-form">
+
+  {/* LEFT SIDE */}
+  <div className="form-column">
+
+    <label>User ID :</label>
+    <input
+      type="text"
+      value={selectedComplaint.user_id}
+      readOnly
+    />
+
+    <label>Phone :</label>
+    <input
+      type="text"
+      value={selectedComplaint.phone}
+      readOnly
+    />
+
+
+ <label>Priority :</label>
+
+<select
+  value={selectedComplaint.priority || "Not Assigned"}
+  onChange={(e) => {
+    updatePriority(
+      selectedComplaint.complaint_id,
+      e.target.value
+    );
+
+    setSelectedComplaint({
+      ...selectedComplaint,
+      priority: e.target.value,
+    });
+  }}
+>
+  <option value="Not Assigned">Not Assigned</option>
+  <option value="Low">Low</option>
+  <option value="Medium">Medium</option>
+  <option value="High">High</option>
+</select>
+
+    <label>Description :</label>
+
+    <textarea
+      value={selectedComplaint.description}
+      readOnly
+      className="large-textarea"
+    />
+
+    <label>Status :</label>
+
+    <select
+      value={status}
+      onChange={(e) =>
+        setStatus(e.target.value)
+      }
+    >
+      <option value="Pending">
+        Pending
+      </option>
+
+      <option value="In progress">
+        In progress
+      </option>
+
+      <option value="Resolved">
+        Resolved
+      </option>
+    </select>
+
+    <label>Admin Comment :</label>
+
+    <textarea
+      value={adminResponse}
+      onChange={(e) =>
+        setAdminResponse(e.target.value)
+      }
+      className="medium-textarea"
+      placeholder="Enter comment..."
+    />
+
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div className="form-column">
+
+    <label>Complaint ID :</label>
+    <input
+      type="text"
+      value={selectedComplaint.complaint_id}
+      readOnly
+    />
+
+    <label>Category :</label>
+    <input
+      type="text"
+      value={selectedComplaint.category}
+      readOnly
+    />
+
+    <label>Location :</label>
+
+    <div className="map-box">
+
+      <MapContainer
+        center={[lat, lng]}
+        zoom={15}
+        style={{
+          height: "180px",
+          width: "100%",
+        }}
+      >
+        <TileLayer
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <Marker position={[lat, lng]} />
+      </MapContainer>
+
+    </div>
+
+    <a
+      href={`https://www.google.com/maps?q=${lat},${lng}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="map-link"
+    >
+      View on Google Maps
+    </a>
+
+    <label>Complaint Image :</label>
+
+    <div className="image-box">
+
+      {selectedComplaint.image_url ? (
+        <img
+          src={`http://localhost:5000/uploads/${selectedComplaint.image_url}`}
+          alt="Complaint"
+          className="complaint-image"
+        />
+      ) : (
+        <div className="no-image">
+          No Image
+        </div>
+      )}
+
+    </div>
+
+    {status === "Resolved" && (
+      <>
+        <label>
+          Resolution Proof :
+        </label>
+
+       <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+    if (e.target.files?.[0]) {
+      setResolutionProof(e.target.files[0]);
+    }
+  }}
+/>
+      </>
+    )}
+
+  </div>
+
+</div>
+
+  <button
               className="delete-btn"
               onClick={() =>
                 setShowDeleteConfirm(true)
@@ -654,200 +933,65 @@ background:red;
               Delete
             </button>
 
-            <h2>
-              View / Edit Complaints
-            </h2>
+<div className="button-group">
+         
 
-            <div className="details">
+  <button
+    className="cancel-btn"
+    onClick={closeModal}
+  >
+    Cancel
+  </button>
 
-              <p>
-                <strong>
-                  Complaint ID :
-                </strong>{" "}
-                {
-                  selectedComplaint.complaint_id
-                }
-              </p>
+  <button
+    className="save-btn"
+    onClick={handleSave}
+  >
+    Save Changes
+  </button>
 
-              <p>
-                <strong>User ID :</strong>{" "}
-                {selectedComplaint.user_id}
-              </p>
-
-              <p>
-                <strong>Phone :</strong>{" "}
-                {selectedComplaint.phone}
-              </p>
-
-              <p>
-                <strong>
-                  Category :
-                </strong>{" "}
-                {
-                  selectedComplaint.category
-                }
-              </p>
-
-              <p>
-                <strong>
-                  Priority :
-                </strong>{" "}
-                {
-                  selectedComplaint.priority
-                }
-              </p>
-
-              <p>
-                <strong>
-                  Location :
-                </strong>{" "}
-                {
-                  selectedComplaint.location
-                }
-              </p>
-
-              <p>
-                <strong>
-                  Description :
-                </strong>
-              </p>
-
-              <textarea
-                readOnly
-                value={
-                  selectedComplaint.description
-                }
-                className="description-box"
-              />
-
-              <p>
-                <strong>
-                  Complaint Image :
-                </strong>
-              </p>
-
-              {selectedComplaint.complaint_image ? (
-
-                <img
-                  src={
-                    selectedComplaint.complaint_image
-                  }
-                  alt="Complaint"
-                  className="complaint-image"
-                />
-
-              ) : (
-
-                <div className="no-image">
-                  No Image
-                </div>
-
-              )}
-
-              <p>
-                <strong>Status :</strong>
-              </p>
-
-              <select
-                value={status}
-                onChange={(e) =>
-                  setStatus(
-                    e.target.value
-                  )
-                }
-              >
-                <option>
-                  Pending
-                </option>
-
-                <option>
-                  In progress
-                </option>
-
-                <option>
-                  Resolved
-                </option>
-
-              </select>
-
-              <p>
-                <strong>
-                  Admin Response :
-                </strong>
-              </p>
-
-              <textarea
-                value={adminResponse}
-                onChange={(e) =>
-                  setAdminResponse(
-                    e.target.value
-                  )
-                }
-                className="response-box"
-              />
-
-              <div className="button-group">
-
-                <button
-                  className="cancel-btn"
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  className="save-btn"
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-
-              </div>
-
-            </div>
+</div>
 
           </div>
 
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+{showDeleteConfirm && (
 
-      {showDeleteConfirm && (
+  <div className="confirm-overlay">
 
-        <div className="confirm-overlay">
+    <div className="confirm-box">
 
-          <div className="confirm-box">
+      <h3>
+        Are you sure do you want to
+        delete this complaint?
+      </h3>
 
-            <h3>
-              Are you sure do you want to
-              delete this complaint?
-            </h3>
+      <div className="confirm-buttons">
 
-            <div className="confirm-buttons">
+        <button
+          className="confirm-cancel"
+          onClick={() =>
+            setShowDeleteConfirm(false)
+          }
+        >
+          Cancel
+        </button>
 
-              <button
-                className="confirm-cancel"
-                onClick={() =>
-                  setShowDeleteConfirm(false)
-                }
-              >
-                Cancel
-              </button>
+        <button
+          className="confirm-delete"
+          onClick={handleDelete}
+        >
+          Confirm
+        </button>
 
-              <button
-                className="confirm-delete"
-                onClick={handleDelete}
-              >
-                Confirm
-              </button>
+      </div>
 
-            </div>
+    </div>
 
-          </div>
-
-        </div>
-      )}
+  </div>
+)}
 
     </>
   );

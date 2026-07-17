@@ -359,7 +359,7 @@ export default function Home() {
           <ul className="nav-center">
             <li className="active"><a href="#">Home</a></li>
             <li><span onClick={() => navigate("/how")}>How it Works</span></li>
-            <li><span onClick={() => navigate("/complaints")}>My Complaints</span></li>
+            <li><span onClick={() => navigate("/track")}>My Complaints</span></li>
             <li><span onClick={() => navigate("/reviews")}>Reviews</span></li>
             {/* <li><span onClick={() => navigate("/adminDash")}>Admin Dashboard</span></li> */}
           </ul>

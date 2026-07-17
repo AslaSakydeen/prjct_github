@@ -1,18 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import MapPicker from "../component/map";
 
 
 const SubmitComplaint: React.FC = () => {
   const navigate = useNavigate();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+const [successData, setSuccessData] = useState({
+  userName: "",
+  complaintId: "",
+  referenceNo: "",
+});
 
   // ── STATE ──
   const [category, setCategory] = useState<string>("");
-  const [priority, setPriority] = useState<string>("Low");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [location, setLocation] = useState<string>("");
+  const [location, setLocation] = useState<any>(null);
+  const [locationName, setLocationName] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
+  const [phoneError, setPhoneError] = useState("");
 
   // File state
   const [image, setImage] = useState<File | null>(null);
@@ -26,6 +35,27 @@ const SubmitComplaint: React.FC = () => {
     }
   };
 
+ const getLocationName = async (
+  latitude: number,
+  longitude: number
+) => {
+  try {
+    const res = await axios.get(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+    );
+
+    return res.data.display_name;
+  } catch (error) {
+    console.log(error);
+    return "";
+  }
+};
+
+
+
+
+
+
   // ── SUBMIT ──
   const handleSubmit = async (): Promise<void> => {
     try {
@@ -33,14 +63,24 @@ const SubmitComplaint: React.FC = () => {
         alert("Please fill all required fields");
         return;
       }
+  
+const phoneRegex = /^07\d{8}$/;
 
+if (!phoneRegex.test(phone)) {
+  setPhoneError("Please enter a valid Sri Lankan phone number.");
+  return;
+}
+
+setPhoneError("");
+      
       const formData = new FormData();
 
       formData.append("category", category);
-      formData.append("priority", priority);
       formData.append("title", title);
       formData.append("description", description);
-      formData.append("location", location);
+      formData.append("latitude", location.lat.toString());
+      formData.append("longitude", location.lng.toString());
+      formData.append("location_name", locationName);
       formData.append("phone", phone);
 
       if (image) {
@@ -49,19 +89,27 @@ const SubmitComplaint: React.FC = () => {
 
       const token = localStorage.getItem("token");
 
-      await axios.post(
-        "http://localhost:5000/api/complaints",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      console.log("Location Name being sent:", locationName);
+    const response = await axios.post(
+  "http://localhost:5000/api/complaints",
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
-      alert("Complaint submitted successfully!");
-      navigate("");
+     setSuccessData({
+  userName: response.data.userName,
+  complaintId: response.data.complaintId,
+  referenceNo: response.data.referenceNo,
+});
+
+setShowSuccessModal(true);
+
+      
     }catch (err: unknown) {
 
   if (axios.isAxiosError(err)) {
@@ -102,7 +150,11 @@ const SubmitComplaint: React.FC = () => {
     navigate(-1);
   };
 
-  return (
+  const copyReferenceNumber = () => {
+  navigator.clipboard.writeText(successData.referenceNo);
+  alert("Reference Number Copied!");
+};
+return (
     <>
       <style>{`
         body {
@@ -357,6 +409,60 @@ const SubmitComplaint: React.FC = () => {
         .submit-btn:hover {
           background: #14532d;
         }
+          
+        /* popup */
+        .modal-overlay {
+   position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+.success-modal {
+  background: #f8f8f8;
+
+  width: 600px;
+  max-width: 90%;
+
+  padding: 40px;
+
+  border-radius: 30px;
+
+  border: 12px solid #013317;
+
+  text-align: center;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.success-modal h2 {
+  color: #166534;
+  margin-bottom: 30px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 30px;
+  
+}
+  .btnnn{
+  color: white;
+  background: #166534;
+  border: 2px solid #166534;
+  
+  }
       `}</style>
 
       <div className="container">
@@ -387,49 +493,10 @@ const SubmitComplaint: React.FC = () => {
           </select>
         </div>
 
-       <div className="sc-field">
-  <label className="sc-label">
-    Priority <span className="sc-required"></span>
-  </label>
-
-  <div className="priority-group">
-
-    <button
-      type="button"
-      className={`priority-btn low ${priority === "Low" ? "sel" : ""}`}
-      onClick={() => setPriority("Low")}
-    >
-      <span className="priority-dot" />
-      Low Priority
-    </button>
-
-    <button
-      type="button"
-      className={`priority-btn med ${priority === "Medium" ? "sel" : ""}`}
-      onClick={() => setPriority("Medium")}
-    >
-      <span className="priority-dot" />
-      Medium Priority
-    </button>
-
-    <button
-      type="button"
-      className={`priority-btn high ${priority === "High" ? "sel" : ""}`}
-      onClick={() => setPriority("High")}
-    >
-      <span className="priority-dot" />
-      High Priority
-    </button>
-
-  </div>
-
-  <div className="priority-status">
-    <span>Selected Priority:</span>
-    <strong>{priority}</strong>
-  </div>
+    
 
               
-        </div>
+        
 
         {/* TITLE */}
         <div className="form-group">
@@ -458,33 +525,62 @@ const SubmitComplaint: React.FC = () => {
           />
         </div>
 
-        {/* LOCATION */}
-        <div className="form-group">
-          <label>Location </label>
+    {/* LOCATION */}
+<MapPicker
+  setLocation={async (loc: any) => {
+    setLocation(loc);
 
-          <input
-            type="text"
-            placeholder="Enter location"
-            value={location}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setLocation(e.target.value)
-            }
-          />
-        </div>
+    const name = await getLocationName(loc.lat, loc.lng);
 
+    setLocationName(name);
+
+    console.log("Location Name:", name);
+  }}
+/>
+
+{location && (
+  <div style={{ marginTop: "10px" }}>
+    <strong>Selected Location:</strong>
+    <br />
+    {locationName}
+    <br />
+  </div>
+)}
         {/* PHONE */}
         <div className="form-group">
           <label>Phone Number</label>
 
           <input
-            type="text"
-            placeholder="+94 XX XXX XXXX"
-            value={phone}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPhone(e.target.value)
-            }
-          />
+  type="tel"
+  placeholder="0712345678"
+  value={phone}
+  maxLength={10}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    setPhone(value);
+
+    if (phoneError) {
+      setPhoneError("");
+    }
+  }}
+/>
+
+{phoneError && (
+  <p
+    style={{
+      color: "#dc2626",
+      fontSize: "13px",
+      marginTop: "6px",
+      fontWeight: "500",
+    }}
+  >
+    {phoneError}
+  </p>
+)}
         </div>
+
+
+        
 
         {/* FILE */}
         <div className="form-group">
@@ -516,6 +612,29 @@ const SubmitComplaint: React.FC = () => {
           </button>
         </div>
       </div>
+      {showSuccessModal && (
+  <div className="modal-overlay">
+    <div className="success-modal">
+
+      <h2>Complaint Submitted Successfully</h2>
+
+      <p><strong>Name:</strong> {successData.userName}</p>
+
+      <p><strong>Complaint ID:</strong> {successData.complaintId}</p>
+
+      <p><strong>Reference No:</strong> {successData.referenceNo}</p>
+
+      <button className="btnnn" onClick={copyReferenceNumber}>
+        Copy Reference Number
+      </button>
+
+      <button className="btnnn" onClick={() => setShowSuccessModal(false)}>
+        Close
+      </button>
+
+    </div>
+  </div>
+)}
     </>
   );
 };

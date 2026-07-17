@@ -402,7 +402,7 @@ background:red;
     Manage Complaint
   </li>
 
-  <li>Manage Review</li>
+  <li onClick={() => navigate("/manageReview")}>Manage Review</li>
 
   <li>Notification</li>
 
@@ -519,7 +519,7 @@ background:red;
               {selectedUser.role}
             </div>
 
-            <div className="detail">
+            {/* <div className="detail">
 
               <span>Status:</span>
 
@@ -535,7 +535,7 @@ background:red;
                 <option value="Active">Active</option>
                 <option value="Blocked">Blocked</option>
               </select>
-            </div>
+            </div> */}
 
             <br />
 

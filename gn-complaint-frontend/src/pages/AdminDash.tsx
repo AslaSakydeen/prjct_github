@@ -315,9 +315,11 @@ Manage Users
 Manage Complaint
 </li>
 
-<li>Manage Review</li>
+<li onClick={() => navigate("/manageReview")}>
+Manage Review
+</li>
 
-<li>Notification</li>
+<li onClick={() => navigate("/manageNotifications")}>Notification</li>
 
 <li>Settings</li>
 

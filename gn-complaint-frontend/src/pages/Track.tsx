@@ -1,21 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
- 
-
-
-interface Review {
-  review_id: number;
-  full_name: string;
-  rating: number;
-  review_text: string;
-  admin_reply: string | null;
-  created_at: string;
-}
-
-export default function Reviews() {
+export default function Track() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [reference, setReference] = useState("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,97 +15,19 @@ export default function Reviews() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [canReview, setCanReview] = useState(false);
-  
-  const [review_text, setReviewText] = useState("");
-  const [rating, setRating] = useState(5);
+  const handleTrack = () => {
+  const referenceNumber = reference.trim();
 
-  useEffect(() => {
-    loadReviews();
-    checkCanReview();
-  }, []);
-
-  const loadReviews = async () => {
-  try {
-    const res = await fetch("http://localhost:5000/api/review");
-
-    console.log("Status:", res.status);
-    console.log("Type:", res.headers.get("content-type"));
-
-    const data = await res.json();
-
-    setReviews(data);
-
-  } catch (error) {
-    console.error("Loading reviews failed:", error);
-  }
-};
-  const checkCanReview = async () => {
-
-  try {
-
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(
-      "http://localhost:5000/api/review/can-review",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-
-    const data = await res.json();
-
-    setCanReview(data.canReview);
-
-  } catch (err) {
-
-    console.error(err);
-
-  }
-
-};
-  const submitReview = async () => {
-
-  if (review_text === "") {
-    alert("Enter review");
+  if (!referenceNumber) {
+    alert("Please enter your reference number");
     return;
   }
 
-  const token = localStorage.getItem("token");
+  console.log("Navigating to:", referenceNumber); // DEBUG
 
-  const res = await fetch(
-    "http://localhost:5000/api/review",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        rating,
-        review_text
-      })
-    }
-  );
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.message);
-    return;
-  }
-
-  alert("Review submitted successfully.");
-
-  setReviewText("");
-  setRating(5);
-
-  loadReviews();
-
+  navigate(`/track/${encodeURIComponent(referenceNumber)}`);
 };
+
   const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 
@@ -215,209 +126,219 @@ export default function Reviews() {
   .avatar:hover { border-color:var(--green-500); }
   .hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:4px; }
   .hamburger span { display:block; width:22px; height:2px; background:var(--ink); border-radius:2px; transition:all 0.3s; }
-
-  /* ===========================
-   REVIEW PAGE
-=========================== */
-
-.review-page{
-  max-width:1100px;
-  margin:140px auto 60px;
-  padding:20px;
 }
 
-.review-page h1{
-  text-align:center;
-  font-family:'Playfair Display',serif;
-  font-size:2.5rem;
-  color:var(--green-900);
-  margin-bottom:35px;
+// Other
+.track-page {
+  background: #ffffff;
+  min-height: 100vh;
+  font-family: "DM Sans", sans-serif;
 }
 
-/* ===========================
-   REVIEW FORM
-=========================== */
-
-.review-form{
-  background:rgba(255,255,255,0.92);
-  backdrop-filter:blur(20px);
-  border:1px solid rgba(21,128,61,0.12);
-  border-radius:22px;
-  padding:30px;
-  box-shadow:var(--shadow-md);
-
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-
-  animation:fadeUp .6s ease;
+.track-container {
+  width: 90%;
+  max-width: 1150px;
+  margin: auto;
 }
 
-.review-form input,
-.review-form select,
-.review-form textarea{
-  width:100%;
-  padding:14px 16px;
-  border:1px solid #d1d5db;
-  border-radius:12px;
-  font-family:'DM Sans',sans-serif;
-  font-size:15px;
-  background:#fff;
-  transition:.3s;
-  outline:none;
+/* HERO */
+
+.track-hero {
+  background: #083b1f;
+  padding: 140px 20px 90px;
+  text-align: center;
 }
 
-.review-form textarea{
-  min-height:140px;
-  resize:vertical;
+.track-hero h1 {
+  color: white;
+  font-size: 52px;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
-.review-form input:focus,
-.review-form select:focus,
-.review-form textarea:focus{
-  border-color:var(--green-500);
-  box-shadow:0 0 0 4px rgba(34,197,94,.15);
+.track-hero p {
+  color: #d6d6d6;
+  max-width: 650px;
+  margin: auto;
+  line-height: 1.7;
 }
 
-.review-form button{
-  align-self:flex-start;
-  padding:13px 28px;
-  border:none;
-  border-radius:12px;
-  cursor:pointer;
-  font-size:15px;
-  font-weight:600;
-  color:#fff;
-  background:linear-gradient(135deg,var(--green-800),var(--green-600));
-  box-shadow:0 6px 18px rgba(21,128,61,.25);
-  transition:.3s;
+.track-search {
+  margin-top: 35px;
+  display: flex;
+  justify-content: center;
 }
 
-.review-form button:hover{
-  transform:translateY(-3px);
-  box-shadow:0 12px 25px rgba(21,128,61,.35);
+.track-search input {
+  width: 500px;
+  padding: 15px;
+  border: none;
+  outline: none;
+  font-size: 15px;
 }
 
-/* ===========================
-   REVIEW LIST
-=========================== */
-
-.review-list{
-  margin-top:45px;
-
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-  gap:25px;
+.track-search button {
+  background: #0f4f2b;
+  color: white;
+  border: none;
+  padding: 0 28px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.review-card{
-  background:rgba(255,255,255,.94);
-  backdrop-filter:blur(18px);
-  border:1px solid rgba(21,128,61,.12);
-  border-radius:20px;
-  padding:24px;
-  box-shadow:var(--shadow-sm);
-  transition:.3s;
-  animation:fadeUp .5s ease;
+.track-search button:hover {
+  background: #146c3c;
 }
 
-.review-card:hover{
-  transform:translateY(-6px);
-  box-shadow:var(--shadow-lg);
+.help-text {
+  display: block;
+  margin-top: 12px;
+  color: #b8b8b8;
+  font-size: 14px;
 }
 
-.review-card h3{
-  font-size:1.15rem;
-  color:var(--green-900);
-  margin-bottom:8px;
+/* STEPS */
+
+.steps-section {
+  padding: 70px 0;
 }
 
-.review-card .stars{
-  font-size:1.1rem;
-  margin-bottom:12px;
-  color:var(--accent);
+.steps-section h2 {
+  font-size: 38px;
+  margin-bottom: 40px;
 }
 
-.review-card p{
-  color:var(--ink-soft);
-  line-height:1.7;
-  font-size:15px;
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
 }
 
-.review-card span{
-  display:block;
-  margin-top:18px;
-  font-size:.85rem;
-  color:var(--ink-muted);
+.step-card {
+  background: #dfe9e2;
+  padding: 25px;
 }
 
-/* ===========================
-   RESPONSIVE
-=========================== */
-
-@media (max-width:768px){
-
-.review-page{
-  margin-top:120px;
-  padding:15px;
+.step-number {
+  width: 35px;
+  height: 35px;
+  background: #083b1f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border-radius: 5px;
+  margin-bottom: 15px;
 }
 
-.review-page h1{
-  font-size:2rem;
+.step-card h3 {
+  margin-bottom: 10px;
 }
 
-.review-form{
-  padding:22px;
+.step-card p {
+  color: #555;
+  line-height: 1.7;
 }
 
-.review-list{
-  grid-template-columns:1fr;
+/* STATUS */
+
+.status-section {
+  padding-bottom: 80px;
 }
 
-.review-form button{
-  width:100%;
-}
-.admin-reply{
-
-margin-top:25px;
-
-padding:15px;
-
-background:#eef9ef;
-
-border-left:5px solid #0d5c11;
-
-border-radius:10px;
-
+.status-section h2 {
+  text-align: center;
+  font-size: 38px;
 }
 
-.admin-reply h4{
-
-color:#0d5c11;
-
-margin-bottom:8px;
-
-font-size:16px;
-
+.status-subtitle {
+  text-align: center;
+  margin: 15px auto 40px;
+  max-width: 700px;
+  color: #666;
 }
 
-.admin-reply p{
-
-margin:0;
-
-color:#444;
-
-line-height:1.6;
-
-}
-.review-card > p:first-of-type{
-  margin-bottom:20px;
-}
-  .user-review{
-  margin-bottom:20px;
+.status-card {
+  background: #edf1ee;
+  padding: 18px 25px;
+  margin-bottom: 15px;
 }
 
-}`;
+.status-card h4 {
+  margin-bottom: 8px;
+}
+
+/* CTA */
+
+.cta-section {
+  background: #dfe9e2;
+  padding: 80px 20px;
+}
+
+.cta-box {
+  max-width: 900px;
+  margin: auto;
+  background: #083b1f;
+  color: white;
+  text-align: center;
+  padding: 60px;
+}
+
+.cta-box h2 {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.cta-box p {
+  color: #d8d8d8;
+  margin-bottom: 25px;
+}
+
+.cta-box button {
+  background: white;
+  color: #083b1f;
+  border: none;
+  padding: 14px 30px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.cta-box button:hover {
+  transform: translateY(-2px);
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .track-hero h1 {
+    font-size: 38px;
+  }
+
+  .track-search {
+    flex-direction: column;
+  }
+
+  .track-search input {
+    width: 100%;
+  }
+
+  .track-search button {
+    padding: 15px;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-box {
+    padding: 40px 20px;
+  }
+}
+
+`;
 
   return (
     <>
@@ -479,104 +400,131 @@ line-height:1.6;
         </nav>
       </div>
 
-<div className="review-page">
+      <div className="track-page">
 
-<h1>⭐ Customer Reviews</h1>
+      {/* HERO */}
+      <section className="track-hero">
+        <div className="track-container">
+          <h1>Track Your Complaint</h1>
 
-{canReview ? (
+          <p>
+            Stay informed about the progress of your civic reports.
+            Enter your unique reference number below to see live updates.
+          </p>
 
-<div className="review-form">
+          <div className="track-search">
+            <input
+              type="text"
+              placeholder="Enter your reference number"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+            />
 
-<select
-value={rating}
-onChange={(e)=>setRating(Number(e.target.value))}
->
+            <button onClick={handleTrack}>
+              Track Now ➜
+            </button>
+          </div>
 
-<option value={5}>★★★★★</option>
-<option value={4}>★★★★☆</option>
-<option value={3}>★★★☆☆</option>
-<option value={2}>★★☆☆☆</option>
-<option value={1}>★☆☆☆☆</option>
+          <span className="help-text">
+            Lost your reference number? Check your confirmation SMS or Email.
+          </span>
+        </div>
+      </section>
 
-</select>
+      {/* STEPS */}
+      <section className="steps-section">
+        <div className="track-container">
+          <h2>Simple Steps to Track</h2>
 
-<textarea
-placeholder="Write your review..."
-value={review_text}
-onChange={(e)=>setReviewText(e.target.value)}
-/>
+          <div className="steps-grid">
+            <div className="step-card">
+              <div className="step-number">1</div>
+              <h3>Find Reference</h3>
 
-<button onClick={submitReview}>
-Submit Review
-</button>
+              <p>
+                Check the SMS or Email confirmation you received when
+                submitting your complaint.
+              </p>
+            </div>
 
-</div>
+            <div className="step-card">
+              <div className="step-number">2</div>
+              <h3>Enter Details</h3>
 
-) : (
+              <p>
+                Type your reference number into the search box above.
+                Ensure all characters are entered correctly.
+              </p>
+            </div>
 
-<div className="review-form">
+            <div className="step-card">
+              <div className="step-number">3</div>
+              <h3>View Progress</h3>
 
-<h3 style={{ color: "#166534" }}>
-Review Not Available
-</h3>
+              <p>
+                Instantly see the current status, assigned officer,
+                and latest updates for your complaint.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<p style={{ lineHeight: "1.7" }}>
-You can submit a review only after one of your complaints has been marked as <strong>Resolved</strong> by the administrator.
-</p>
+      {/* STATUS */}
+      <section className="status-section">
+        <div className="track-container">
 
-</div>
+          <h2>Understanding Status Update</h2>
 
-)}
+          <p className="status-subtitle">
+            Our system uses standardized stages to keep you informed
+            about where your request stands in the administrative process.
+          </p>
 
-<div className="review-list">
+          <div className="status-card">
+            <h4>Pending</h4>
+            <p>
+              Your complaint has been successfully received and is
+              currently in the queue for preliminary screening.
+            </p>
+          </div>
 
-{reviews.map((review)=>(
+          <div className="status-card">
+            <h4>In Progress</h4>
+            <p>
+              An officer has been assigned and is actively investigating
+              your report.
+            </p>
+          </div>
 
-<div
-key={review.review_id}
-className="review-card"
->
+          <div className="status-card">
+            <h4>Resolved</h4>
+            <p>
+              Action has been taken and the issue is considered resolved.
+              You may review the final resolution notes and provide feedback.
+            </p>
+          </div>
 
-<h3>{review.full_name || "Anonymous"}</h3>
+        </div>
+      </section>
 
-<p className="stars">
+      {/* CTA */}
+      <section className="cta-section">
+        <div className="cta-box">
+          <h2>Haven't reported an issue yet?</h2>
 
-{"⭐".repeat(review.rating)}
+          <p>
+            Join thousands of citizens helping to improve our community.
+            Reporting takes less than 2 minutes.
+          </p>
 
-</p>
+          <button onClick={() => navigate("/complaint")}>
+            Report New Complaint
+          </button>
+        </div>
+      </section>
 
-<p className="user-review">
-  {review.review_text}
-</p>
-
-{review.admin_reply && (
-
-<div className="admin-reply">
-
-<h4>Admin Reply</h4>
-
-<p>{review.admin_reply}</p>
-
-</div>
-
-)}
-
-<span>
-
-{new Date(review.created_at).toLocaleDateString()}
-
-</span>
-
-</div>
-
-))}
-
-</div>
-
-</div>
-
-  
-
+    </div>
     </>
   );
 }

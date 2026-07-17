@@ -1,7 +1,21 @@
-
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 export default function HowItWorks() {
+  const navigate = useNavigate();
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   const steps = [
     {
       number: "1",
@@ -39,7 +53,29 @@ export default function HowItWorks() {
   return (
     <>
       <style>{`
-      
+         :root {
+    --green-950: #052e16;
+    --green-900: #14532d;
+    --green-800: #166534;
+    --green-700: #15803d;
+    --green-600: #16a34a;
+    --green-500: #22c55e;
+    --green-400: #4ade80;
+    --green-100: #dcfce7;
+    --green-50:  #f0fdf4;
+    --sand:      #faf8f3;
+    --ink:       #0c1a0e;
+    --ink-soft:  #374151;
+    --ink-muted: #6b7280;
+    --white:     #ffffff;
+    --accent:    #f59e0b;
+    --accent-lt: #fef3c7;
+    --radius:    16px;
+    --radius-lg: 28px;
+    --shadow-sm: 0 2px 8px rgba(21,128,61,0.08);
+    --shadow-md: 0 8px 32px rgba(21,128,61,0.12);
+    --shadow-lg: 0 24px 60px rgba(21,128,61,0.16);
+  }
         *{
           margin:0;
           padding:0;
@@ -55,53 +91,74 @@ export default function HowItWorks() {
           width:100%;
         }
 
-        /* NAVBAR */
-
-        .navbar{
-          width:90%;
-          margin:20px auto;
-          background:white;
-          border-radius:50px;
-          padding:18px 30px;
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-        }
-
-        .logo{
-          color:#0d5a2d;
-        }
-
-        .nav-links{
-          display:flex;
-          gap:25px;
-        }
-
-        .nav-links a{
-          text-decoration:none;
-          color:#333;
-        }
-
-        .active{
-          color:#0d5a2d;
-          font-weight:bold;
-        }
-
-        .submit-btn{
-          background:#0d5a2d;
-          color:white;
-          border:none;
-          padding:12px 22px;
-          border-radius:30px;
-          cursor:pointer;
-        }
+      /* NAV */
+  .nav-wrap { position:fixed; top:0; left:0; right:0; z-index:200; padding:14px 24px; transition:all 0.3s; }
+  .nav-wrap.scrolled .navbar { box-shadow:var(--shadow-md); background:rgba(255,255,255,0.97); }
+  .navbar {
+    max-width:1200px; margin:0 auto;
+    background:rgba(255,255,255,0.92); backdrop-filter:blur(20px);
+    border-radius:20px; padding:14px 28px;
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid rgba(21,128,61,0.1); transition:all 0.3s;
+  }
+  .brand { display:flex; align-items:center; gap:12px; text-decoration:none; cursor:pointer; }
+  .brand-mark {
+    width:44px; height:44px;
+    background:linear-gradient(135deg,var(--green-800),var(--green-600));
+    border-radius:13px; display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif; font-weight:800; font-size:18px; color:white;
+    box-shadow:0 4px 14px rgba(21,128,61,0.35); position:relative; overflow:hidden;
+  }
+  .brand-mark::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent); }
+  .brand-name { font-family:'DM Sans',sans-serif; font-weight:700; font-size:1.15rem; color:var(--ink); letter-spacing:-0.02em; }
+  .brand-name span { color:var(--green-700); }
+  .nav-center { display:flex; align-items:center; gap:4px; list-style:none; }
+  .nav-center li a, .nav-center li span {
+    display:block; padding:8px 16px; font-size:0.875rem; font-weight:500;
+    color:var(--ink-soft); text-decoration:none; border-radius:10px;
+    cursor:pointer; transition:all 0.2s; white-space:nowrap;
+  }
+  .nav-center li a:hover, .nav-center li span:hover { color:var(--white); background:var(--green-800); }
+  .nav-center li.active a { background:var(--green-800); color:white; font-weight:600; }
+  .nav-right { display:flex; align-items:center; gap:10px; }
+  .btn-nav-submit {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:9px 20px;
+    background:linear-gradient(135deg,var(--green-800),var(--green-600));
+    color:white; font-family:inherit; font-size:0.875rem; font-weight:600;
+    border:none; border-radius:10px; cursor:pointer;
+    box-shadow:0 4px 14px rgba(21,128,61,0.28); transition:all 0.25s;
+  }
+  .btn-nav-submit:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(21,128,61,0.36); }
+  .btn-nav-submit svg { width:15px; height:15px; }
+  .nav-logout {
+    padding:8px 18px; font-size:0.875rem; font-weight:500;
+    color:var(--ink-soft); background:none;
+    border:1.5px solid rgba(0,0,0,0.12); border-radius:10px;
+    cursor:pointer; transition:all 0.2s; font-family:inherit;
+  }
+  .nav-logout:hover { border-color:var(--green-600); color:var(--green-700); background:var(--green-50); }
+  .avatar {
+    width:40px; height:40px;
+    background:linear-gradient(135deg,var(--green-100),#bbf7d0);
+    border:2px solid #bbf7d0; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:border-color 0.2s; font-size:0.75rem;
+    font-weight:700; color:var(--green-800);
+  }
+  .avatar:hover { border-color:var(--green-500); }
+  .hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:4px; }
+  .hamburger span { display:block; width:22px; height:2px; background:var(--ink); border-radius:2px; transition:all 0.3s; }
 
         /* HERO */
 
         .hero{
-          text-align:center;
-          padding:80px 20px;
-        }
+  text-align:center;
+  padding-top:150px;
+  padding-right:20px;
+  padding-bottom:80px;
+  padding-left:20px;
+}
 
         .small-title{
           color:#0d5a2d;
@@ -128,12 +185,14 @@ export default function HowItWorks() {
           display:grid;
           grid-template-columns:repeat(3,1fr);
           gap:25px;
+          
         }
 
         .card{
           background:white;
           padding:35px;
           border-radius:18px;
+          border:6px solid #052e16;
         }
 
         .circle{
@@ -282,25 +341,39 @@ export default function HowItWorks() {
 
       <div className="page">
 
-        {/* NAVBAR */}
-
+      {/* ── NAVBAR ── */}
+      <div className={`nav-wrap${scrolled ? " scrolled" : ""}`}>
         <nav className="navbar">
-
-          <h2 className="logo">ComplaintCore</h2>
-
-          <div className="nav-links">
-            <a href="/home">Home</a>
-            <a href="#" className="active">How It Works</a>
-            <a href="#">My Complaints</a>
-            <a href="/reviews">Review</a>
-            <a href="#">Contact</a>
+          <div className="brand" onClick={() => navigate("/")}>
+            <div className="brand-mark">CC</div>
+            <span className="brand-name">Complaint<span>Core</span></span>
           </div>
 
-          <button className="submit-btn">
-            Submit Complaint
-          </button>
+          <ul className="nav-center">
+            <li><span onClick={() => navigate("/home")}>Home</span></li>
+            <li className="active"><a href="#">How it Works</a></li>
+            <li><span onClick={() => navigate("/track")}>My Complaints</span></li>
+            <li><span onClick={() => navigate("/reviews")}>Reviews</span></li>
+            {/* <li><span onClick={() => navigate("/adminDash")}>Admin Dashboard</span></li> */}
+          </ul>
 
+          <div className="nav-right">
+            {/* ── SUBMIT COMPLAINT BUTTON ── */}
+            <button className="btn-nav-submit" onClick={() => navigate("/complaint")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Submit Complaint
+            </button>
+            <button className="nav-logout" onClick={() => navigate("/")}>Logout</button>
+            <div className="avatar">JD</div>
+          </div>
+
+          <button className="hamburger" aria-label="Menu">
+            <span /><span /><span />
+          </button>
         </nav>
+      </div>
 
         {/* HERO */}
 
