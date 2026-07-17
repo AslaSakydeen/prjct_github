@@ -217,6 +217,98 @@ const styles = `
   .step-heading { font-size:1rem; font-weight:600; color:white; margin-bottom:10px; letter-spacing:-0.01em; }
   .step-desc { font-size:0.875rem; color:rgba(255,255,255,0.5); line-height:1.7; font-weight:300; }
 
+/* DEPARTMENTS */
+
+.department-section {
+  padding:90px 24px;
+  background:white;
+}
+
+.department-inner {
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.department-header {
+  margin-bottom:50px;
+}
+
+.department-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:22px;
+}
+
+.department-card {
+  background:var(--sand);
+  border-radius:var(--radius-lg);
+  padding:32px;
+  border:1px solid rgba(21,128,61,0.08);
+  box-shadow:var(--shadow-sm);
+  transition:all 0.3s;
+}
+
+.department-card:hover {
+  transform:translateY(-6px);
+  box-shadow:var(--shadow-lg);
+  border-color:rgba(21,128,61,0.2);
+}
+
+
+.department-icon {
+  width:55px;
+  height:55px;
+  background:var(--green-100);
+  border-radius:15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  margin-bottom:20px;
+}
+
+
+.department-name {
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:12px;
+}
+
+
+.department-text {
+  font-size:0.88rem;
+  color:var(--ink-muted);
+  line-height:1.7;
+  margin-bottom:18px;
+}
+
+
+.department-contact {
+  font-size:0.82rem;
+  color:var(--green-700);
+  font-weight:600;
+  line-height:1.8;
+}
+
+
+@media(max-width:1024px){
+
+.department-grid{
+ grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+
+@media(max-width:768px){
+
+.department-grid{
+ grid-template-columns:1fr;
+}
+
+}
+
   /* FEATURES */
   .features-section { padding:90px 24px; background:var(--sand); }
   .features-inner { max-width:1200px; margin:0 auto; }
@@ -333,7 +425,50 @@ const testimonials = [
   { text:"CivicVoice gave our neighbourhood a real platform. We reported 12 issues in one week and 9 are already resolved. The community is more engaged than ever.", name:"Kamal F.", role:"Community Leader",      color:"#1d4e89", initials:"KF" },
   { text:"The transparency is what I love most. I can see exactly where my complaint stands, who it's assigned to, and when to expect a resolution.", name:"Amara N.", role:"Local Business Owner", color:"#92400e", initials:"AN" },
 ];
-
+const departments = [
+  {
+    icon: "🛣️",
+    name: "Road Development Department",
+    handles: "Road damages, potholes, damaged sidewalks, and road maintenance issues.",
+    contact: "011-2345678",
+    email: "roads@communitycare.lk"
+  },
+  {
+    icon: "💧",
+    name: "Water Supply Department",
+    handles: "Water leaks, supply interruptions, pipe damages, and drainage issues.",
+    contact: "011-2233445",
+    email: "water@communitycare.lk"
+  },
+  {
+    icon: "🗑️",
+    name: "Waste Management Department",
+    handles: "Garbage collection, illegal dumping, and waste disposal complaints.",
+    contact: "011-2456789",
+    email: "waste@communitycare.lk"
+  },
+  {
+    icon: "💡",
+    name: "Street Lighting Department",
+    handles: "Broken street lights, damaged electrical poles, and lighting problems.",
+    contact: "011-2567890",
+    email: "lighting@communitycare.lk"
+  },
+  {
+    icon: "🏥",
+    name: "Public Health Department",
+    handles: "Public cleanliness, mosquito breeding areas, and health-related concerns.",
+    contact: "011-2678901",
+    email: "health@communitycare.lk"
+  },
+  {
+    icon: "🌱",
+    name: "Environmental Department",
+    handles: "Environmental pollution, drainage issues, and community environmental concerns.",
+    contact: "011-2789012",
+    email: "environment@communitycare.lk"
+  }
+];
 export default function Home() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -489,6 +624,71 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+{/* ── DEPARTMENTS ── */}
+
+<section className="department-section">
+
+<div className="department-inner">
+
+<div className="department-header">
+
+<p className="section-eyebrow-green">
+Responsible Departments
+</p>
+
+<h2 className="section-title-dark">
+Departments handling community issues
+</h2>
+
+<p className="section-sub">
+Complaints are forwarded to the relevant department 
+to ensure faster responses and effective solutions.
+</p>
+
+</div>
+
+
+<div className="department-grid">
+
+{departments.map((dept,index)=>(
+
+<div className="department-card" key={index}>
+
+<div className="department-icon">
+{dept.icon}
+</div>
+
+
+<div className="department-name">
+{dept.name}
+</div>
+
+
+<p className="department-text">
+{dept.handles}
+</p>
+
+
+<div className="department-contact">
+
+☎ {dept.contact}
+<br/>
+
+✉ {dept.email}
+
+</div>
+
+
+</div>
+
+))}
+
+</div>
+
+</div>
+
+</section>
 
       {/* ── FEATURES ── */}
       <section className="features-section" id="features">
