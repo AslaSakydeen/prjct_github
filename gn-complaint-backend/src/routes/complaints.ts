@@ -320,33 +320,23 @@ router.post(
 
 
       // Send email in background
+const emailResult = await sendEmail(
+  user.email,
+  "Complaint Submitted Successfully",
+  `
+  <h2>Complaint Submitted Successfully</h2>
+  <p>Hello ${user.full_name}</p>
+  <p>Reference Number: ${referenceNo}</p>
+  <p>Status: Pending</p>
+  `
+);
 
-      const sent = await sendEmail(
-        user.email,
-        "Complaint Submitted Successfully",
-        `
-        <div>
-          <h2>Complaint Submitted Successfully</h2>
 
-          <p>Hello ${user.full_name}</p>
-
-          <p>Reference Number: ${referenceNo}</p>
-
-          <p>Status: Pending</p>
-
-        </div>
-        `
-      )
-      .then(()=>{
-
-        console.log("✅ Email Sent");
-
-      })
-      .catch((err)=>{
-
-        console.log("❌ Email Error",err);
-
-      });
+if(emailResult){
+  console.log("✅ Email Sent Successfully");
+}else{
+  console.log("❌ Email Failed");
+}
 
 
     }

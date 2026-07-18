@@ -1,18 +1,28 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import dns from "dns";
+
 
 dotenv.config();
-dns.setDefaultResultOrder("ipv4first");
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service: "gmail",
 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("❌ SMTP Connection Failed");
+    console.log(error);
+  } else {
+    console.log("✅ SMTP Server Ready");
+  }
 });
 
 export const sendEmail = async (
