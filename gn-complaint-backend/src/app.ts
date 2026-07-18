@@ -12,6 +12,7 @@ import reportRoutes from "./routes/report";
 import { sendEmail } from "./utils/sendEmail";
 import notificationRoutes from "./routes/notification";
 
+import fs from "fs";
 import path from "path";//image upload
 console.log("APP FILE LOADED");
 
@@ -19,6 +20,12 @@ dotenv.config();
 
 const app = express();
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));//image upload
+
+const uploadDir = path.join(__dirname, "../uploads");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 app.use(cors());
 app.use(express.json());
