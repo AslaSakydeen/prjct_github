@@ -37,7 +37,7 @@ export default function ManageUsers() {
     try {
 
       const res = await axios.get(
-        "http://localhost:5000/api/users"
+        "https://prjctgithub-production.up.railway.app/api/users"
       );
 
       setUsers(res.data);
@@ -71,7 +71,7 @@ export default function ManageUsers() {
   try {
 
     const res = await axios.put(
-      `http://localhost:5000/api/users/${selectedUser.user_id}`,
+      `https://prjctgithub-production.up.railway.app/api/users/${selectedUser.user_id}`,
       {
         status: selectedUser.status,
       }
@@ -105,7 +105,7 @@ export default function ManageUsers() {
   try {
 
     const res = await axios.delete(
-      `http://localhost:5000/api/users/${selectedUser.user_id}`
+      `https://prjctgithub-production.up.railway.app/api/users/${selectedUser.user_id}`
     );
 
     alert("User deleted successfully");

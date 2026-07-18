@@ -57,7 +57,7 @@ try{
 
 const res=await axios.get(
 
-`http://localhost:5000/api/report/${id}`
+`https://prjctgithub-production.up.railway.app/api/report/${id}`
 
 );
 
@@ -539,7 +539,7 @@ Evidence
 {report.image_url ? (
   <img
     className="complaint-image"
-    src={`http://localhost:5000/uploads/${report.image_url}`}
+    src={`https://prjctgithub-production.up.railway.app/uploads/${report.image_url}`}
     alt="Complaint"
   />
 ) : (

@@ -91,7 +91,7 @@ setPhoneError("");
 
       console.log("Location Name being sent:", locationName);
     const response = await axios.post(
-  "http://localhost:5000/api/complaints",
+  "https://prjctgithub-production.up.railway.app/api/complaints",
   formData,
   {
     headers: {
@@ -100,13 +100,13 @@ setPhoneError("");
     },
   }
 );
+console.log("SUCCESS RESPONSE:", response.data);
 
      setSuccessData({
   userName: response.data.userName,
   complaintId: response.data.complaintId,
   referenceNo: response.data.referenceNo,
 });
-
 setShowSuccessModal(true);
 
       
@@ -117,7 +117,9 @@ setShowSuccessModal(true);
     console.log("FULL ERROR:", err);
 
     if (err.response) {
-      console.log("Backend Response:", err.response.data);
+      console.log("Backend Response:");
+console.log(err.response.data);
+console.log(err.response.data.message);
       console.log("Status:", err.response.status);
 
       alert(

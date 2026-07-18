@@ -72,7 +72,7 @@ export default function ManageComplaint() {
   const fetchComplaints = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/complaints"
+        "https://prjctgithub-production.up.railway.app/api/complaints"
       );
 
       setComplaints(res.data);
@@ -109,7 +109,7 @@ export default function ManageComplaint() {
     priority: string
 ) => {
     await axios.put(
-        `http://localhost:5000/api/complaints/${id}/priority`,
+        `https://prjctgithub-production.up.railway.app/api/complaints/${id}/priority`,
         {
             priority,
         }
@@ -154,7 +154,7 @@ export default function ManageComplaint() {
     }
 
     const response = await axios.put(
-      `http://localhost:5000/api/complaints/${selectedComplaint.complaint_id}`,
+      `https://prjctgithub-production.up.railway.app/api/complaints/${selectedComplaint.complaint_id}`,
       formData,
       {
         headers: {
@@ -183,7 +183,7 @@ export default function ManageComplaint() {
 
   try {
     const response = await axios.delete(
-      `http://localhost:5000/api/complaints/${selectedComplaint.complaint_id}`
+      `https://prjctgithub-production.up.railway.app/api/complaints/${selectedComplaint.complaint_id}`
     );
 
     console.log(response.data);
@@ -890,7 +890,7 @@ Generate Report
 
       {selectedComplaint.image_url ? (
         <img
-          src={`http://localhost:5000/uploads/${selectedComplaint.image_url}`}
+          src={`https://prjctgithub-production.up.railway.app/uploads/${selectedComplaint.image_url}`}
           alt="Complaint"
           className="complaint-image"
         />

@@ -39,7 +39,7 @@ export default function Reviews() {
 
   const loadReviews = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/review");
+    const res = await fetch("https://prjctgithub-production.up.railway.app/api/review");
 
     console.log("Status:", res.status);
     console.log("Type:", res.headers.get("content-type"));
@@ -59,7 +59,7 @@ export default function Reviews() {
     const token = localStorage.getItem("token");
 
     const res = await fetch(
-      "http://localhost:5000/api/review/can-review",
+      "https://prjctgithub-production.up.railway.app/api/review/can-review",
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -88,7 +88,7 @@ export default function Reviews() {
   const token = localStorage.getItem("token");
 
   const res = await fetch(
-    "http://localhost:5000/api/review",
+    "https://prjctgithub-production.up.railway.app/api/review",
     {
       method: "POST",
       headers: {

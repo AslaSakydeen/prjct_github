@@ -252,7 +252,7 @@ useEffect(() => {
 }, []);
   useEffect(() => {
     fetch(
-      `http://localhost:5000/api/track/${referenceNumber}`
+      `https://prjctgithub-production.up.railway.app/api/track/${referenceNumber}`
     )
       .then((res) => res.json())
       .then((data) => setComplaint(data))
@@ -342,7 +342,7 @@ useEffect(() => {
             <label>Uploaded Image</label>
 
            <img
-  src={`http://localhost:5000/uploads/${complaint.image_url}`}
+  src={`https://prjctgithub-production.up.railway.app/uploads/${complaint.image_url}`}
   alt=""
   className="preview"
 />
@@ -354,7 +354,7 @@ useEffect(() => {
                 <label>Resolution Proof</label>
 
                 <img
-                  src={`http://localhost:5000/uploads/${complaint.resolution_proof}`}
+                  src={`https://prjctgithub-production.up.railway.app/uploads/${complaint.resolution_proof}`}
                   alt=""
                   className="preview"
                 />

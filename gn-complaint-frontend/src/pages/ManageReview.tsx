@@ -40,7 +40,7 @@ export default function ManageReview() {
     try {
 
       const res = await axios.get(
-        "http://localhost:5000/api/review"
+        "https://prjctgithub-production.up.railway.app/api/review"
       );
 
       setReviews(res.data);
@@ -99,7 +99,7 @@ const handleReply = async () => {
 
     await axios.put(
 
-      `http://localhost:5000/api/review/${selectedReview.review_id}`,
+      `https://prjctgithub-production.up.railway.app/api/review/${selectedReview.review_id}`,
 
       {
         admin_reply: reply
@@ -132,7 +132,7 @@ const handleDelete = async () => {
 
     await axios.delete(
 
-      `http://localhost:5000/api/review/${selectedReview.review_id}`
+      `https://prjctgithub-production.up.railway.app/api/review/${selectedReview.review_id}`
 
     );
 

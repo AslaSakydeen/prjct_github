@@ -31,7 +31,7 @@ export default function Register() {
   try {
 
     await axios.post(
-      "http://localhost:5000/api/auth/register",
+      "https://prjctgithub-production.up.railway.app/api/auth/register",
       {
         name,
         email,

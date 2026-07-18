@@ -22,7 +22,7 @@ const fetchDashboardData = async () => {
 
     // FETCH COMPLAINTS
     const complaintsRes = await axios.get(
-      "http://localhost:5000/api/complaints"
+      "http://lprjctgithub-production.up.railway.app/api/complaints"
     );
 
     const complaintsData = complaintsRes.data;
@@ -51,7 +51,7 @@ const fetchDashboardData = async () => {
 
     // FETCH USERS
     const usersRes = await axios.get(
-      "http://localhost:5000/api/users"
+      "https://prjctgithub-production.up.railway.app/api/users"
     );
 
     setTotalUsers(usersRes.data.length);
