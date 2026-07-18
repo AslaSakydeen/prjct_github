@@ -311,7 +311,7 @@ router.post(
 
         referenceNo:
         newComplaint.rows[0].reference_no,
-
+ 
         userName:
         user.full_name
 
@@ -321,7 +321,7 @@ router.post(
 
       // Send email in background
 
-      sendEmail(
+      const sent = await sendEmail(
         user.email,
         "Complaint Submitted Successfully",
         `
