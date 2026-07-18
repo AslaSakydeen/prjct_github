@@ -108,7 +108,7 @@ router.put(
           id,
         ]
       );
-
+// Get complaint owner
 const complaintInfo = await pool.query(
 `
 SELECT
@@ -132,56 +132,39 @@ WHERE c.complaint_id = $1
 if (complaintInfo.rows.length > 0) {
 
   const user = complaintInfo.rows[0];
+//save notifications to database
+  await pool.query(
+  `
+  INSERT INTO notifications
+  (user_id, complaint_id, title, message)
+  VALUES ($1, $2, $3, $4)
+  `,
+  [
+    user.user_id,
+    user.complaint_id,
+    "Complaint Updated",
+    `Your complaint "${user.title}" has been updated to "${status}". ${
+      admin_response ? "Response: " + admin_response : ""
+    }`
+  ]
+);
+}
+ res.json({
+        success: true,
+        complaint: result.rows[0],
+      });
 
-  await sendEmail(
-    user.email,
+    } catch (error) {
+      console.log("UPDATE ERROR:", error);
 
-    "Complaint Status Updated",
+      res.status(500).json({
+        message: "Server Error",
+      });
+    }
+  }
+);
 
-    `
-    <div style="font-family:Arial;padding:20px">
-
-      <h2>Complaint Updated</h2>
-
-      <p>Hello <b>${user.full_name}</b>,</p>
-
-      <p>Your complaint has been updated.</p>
-
-      <table border="1" cellpadding="8">
-
-        <tr>
-          <td><b>Reference Number</b></td>
-          <td>${user.reference_no}</td>
-        </tr>
-
-        <tr>
-          <td><b>Title</b></td>
-          <td>${user.title}</td>
-        </tr>
-
-        <tr>
-          <td><b>Status</b></td>
-          <td>${status}</td>
-        </tr>
-
-        <tr>
-          <td><b>Officer Response</b></td>
-          <td>${admin_response || "No response"}</td>
-        </tr>
-
-      </table>
-
-      <br>
-
-      <p>
-      Thank you.
-      </p>
-
-    </div>
-    `
-  );
-
-  router.put("/:id/priority", async (req, res) => {
+ router.put("/:id/priority", async (req, res) => {
     const { id } = req.params;
     const { priority } = req.body;
 
@@ -203,38 +186,7 @@ if (complaintInfo.rows.length > 0) {
         });
     }
 });
-//save notifications to database
-  await pool.query(
-  `
-  INSERT INTO notifications
-  (user_id, complaint_id, title, message)
-  VALUES ($1, $2, $3, $4)
-  `,
-  [
-    user.user_id,
-    user.complaint_id,
-    "Complaint Updated",
-    `Your complaint "${user.title}" has been updated to "${status}". ${
-      admin_response ? "Response: " + admin_response : ""
-    }`
-  ]
-);
-}
-
-      res.json({
-        success: true,
-        complaint: result.rows[0],
-      });
-
-    } catch (error) {
-      console.log("UPDATE ERROR:", error);
-
-      res.status(500).json({
-        message: "Server Error",
-      });
-    }
-  }
-);
+     
 
   // ADD COMPLAINT
   router.post(
@@ -257,8 +209,8 @@ if (complaintInfo.rows.length > 0) {
         } = req.body;
 
         console.log("Authorization:", req.headers.authorization);
-        console.log("req.user =", req.user);
-        console.log("user_id =", req.user?.id);
+        console.log("Decoded User:", req.user);
+        console.log("User ID:", req.user.user_id);
 
 
         const user_id = req.user.user_id;
@@ -291,88 +243,132 @@ if (complaintInfo.rows.length > 0) {
             image_url,
           ]
         );
+console.log("✅ Complaint inserted successfully");
 
-
-        await pool.query(
-  `
-  INSERT INTO notifications
-  (user_id, complaint_id, title, message)
-  VALUES ($1, $2, $3, $4)
-  `,
-  [
-    user_id,
-    newComplaint.rows[0].complaint_id,
-    "Complaint Submitted",
-    `Your complaint "${title}" has been submitted successfully. Reference Number: ${referenceNo}.`
-  ]
-);
+       
 
 
         // Get user's full name
-        const userResult = await pool.query(
-          `
-          SELECT full_name, email
-          FROM users
-          WHERE user_id = $1
-          `,
-          [user_id]
-        );
+      const userResult = await pool.query(
+`
+SELECT full_name,email
+FROM users
+WHERE user_id=$1
+`,
+[user_id]
+);
 
-        console.log("====================================");
-console.log("User Query Result:", userResult.rows);
+if(userResult.rows.length===0){
 
-if (userResult.rows.length === 0) {
-  console.log("❌ No user found for user_id:", user_id);
-} else {
-  console.log("✅ User Name:", userResult.rows[0].full_name);
-  console.log("✅ User Email:", userResult.rows[0].email);
+    return res.status(404).json({
+        message:"User not found"
+    });
+
 }
-console.log("====================================");
 
+const user=userResult.rows[0];
 
-console.log("📧 About to send email...");
+console.log("✅ User Found");
+console.log(user);
 
         //email
-await sendEmail(
-  userResult.rows[0].email,
-  "Complaint Submitted Successfully",
+try{
 
-  `
-  <div style="font-family:Arial;padding:20px">
+    console.log("📧 Sending Email...");
 
-      <h2>Complaint Submitted Successfully</h2>
+    await sendEmail(
+        user.email,
+        "Complaint Submitted Successfully",
+        `
+        <div style="font-family:Arial;padding:20px">
 
-      <p>Hello <b>${userResult.rows[0].full_name}</b>,</p>
+        <h2>Complaint Submitted Successfully</h2>
 
-      <p>Your complaint has been received.</p>
+        <p>Hello <b>${user.full_name}</b>,</p>
 
-      <p><b>Reference Number:</b> ${referenceNo}</p>
+        <p>Your complaint has been received.</p>
 
-      <p><b>Category:</b> ${category}</p>
+        <p><b>Reference Number:</b> ${referenceNo}</p>
 
-     
+        <p><b>Category:</b> ${category}</p>
 
-      <p><b>Status:</b> Pending</p>
+        <p><b>Status:</b> Pending</p>
 
-      <hr>
+        </div>
+        `
+    );
 
-      <p>
-      Thank you for using the GN Complaint Management System.
-      </p>
+    console.log("✅ Email Sent");
 
-  </div>
-  `
-);
-  console.log("✅ sendEmail() finished");
+}catch(err){
+
+    console.log("❌ Email Error");
+    console.log(err);
+
+}
+
+console.log("✅ Returning Success Response");
+
+res.status(201).json({
+  success: true,
+  complaintId: newComplaint.rows[0].complaint_id,
+  referenceNo: newComplaint.rows[0].reference_no,
+  userName: user.full_name,
+});
 
 
-        // Return data needed for success popup
-        res.status(201).json({
-          success: true,
-          complaintId: newComplaint.rows[0].complaint_id,
-          referenceNo: newComplaint.rows[0].reference_no,
-          userName: userResult.rows[0]?.full_name,
-        });
+// AFTER sending response
+
+try {
+
+    await sendEmail(
+        user.email,
+        "Complaint Submitted Successfully",
+        `
+        <div>
+        <h2>Complaint Submitted Successfully</h2>
+
+        <p>Hello ${user.full_name}</p>
+
+        <p>Reference Number: ${referenceNo}</p>
+
+        <p>Status: Pending</p>
+
+        </div>
+        `
+    );
+
+    console.log("✅ Email Sent");
+
+} catch(err){
+
+    console.log("❌ Email Error",err);
+
+}
+
+
+try {
+
+    await pool.query(
+        `
+        INSERT INTO notifications
+        (user_id, complaint_id, title, message)
+        VALUES ($1,$2,$3,$4)
+        `,
+        [
+          user_id,
+          newComplaint.rows[0].complaint_id,
+          "Complaint Submitted",
+          `Your complaint "${title}" has been submitted successfully. Reference Number: ${referenceNo}.`
+        ]
+    );
+
+} catch(err){
+
+    console.log("Notification error",err);
+
+}
+
       } catch (error: any) {
 
     console.error("FULL BACKEND ERROR:");

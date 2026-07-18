@@ -17,10 +17,7 @@ export const sendEmail = async (
   html: string
 ) => {
   try {
-
     console.log("📧 Sending email to:", to);
-
-    
 
     const info = await transporter.sendMail({
       from: `"GN Complaint Management System" <${process.env.EMAIL_USER}>`,
@@ -32,11 +29,14 @@ export const sendEmail = async (
     console.log("✅ Email sent successfully");
     console.log("Message ID:", info.messageId);
 
+    return true;
+
   } catch (error) {
 
     console.error("❌ Email Error:");
     console.error(error);
 
-    throw error; // important for debugging
+    // DON'T throw the error
+    return false;
   }
 };
