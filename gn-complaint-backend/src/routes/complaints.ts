@@ -187,18 +187,42 @@ if (complaintInfo.rows.length > 0) {
     }
 });
      
+// ADD COMPLAINT
+router.post(
+  "/complaints",
+  auth,
+  upload.single("image"),
+  async (req: any, res: Response) => {
 
-  // ADD COMPLAINT
-  router.post(
-    "/complaints",
-    auth,
-    upload.single("image"),
-    async (req: any, res: Response) => {
-      
-      try {
-        const referenceNo = generateReferenceNumber();
+    try {
 
-        const {
+      const referenceNo = generateReferenceNumber();
+
+      const {
+        category,
+        title,
+        description,
+        latitude,
+        longitude,
+        location_name,
+        phone,
+      } = req.body;
+
+
+      const user_id = req.user.user_id;
+
+
+      const file = req.file as Express.Multer.File;
+
+      const image_url = file ? file.filename : null;
+
+
+      const newComplaint = await pool.query(
+        `
+        INSERT INTO complaints
+        (
+          reference_no,
+          user_id,
           category,
           title,
           description,
@@ -206,179 +230,140 @@ if (complaintInfo.rows.length > 0) {
           longitude,
           location_name,
           phone,
-        } = req.body;
+          image_url
+        )
 
-        console.log("Authorization:", req.headers.authorization);
-        console.log("Decoded User:", req.user);
-        console.log("User ID:", req.user.user_id);
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
 
-
-        const user_id = req.user.user_id;
-        console.log("user_id =", user_id);
-
-        // TypeScript fix
-        const file = req.file as Express.Multer.File;
-
-        const image_url = file ? file.filename : null;
-
-        const newComplaint = await pool.query(
-          `
-          INSERT INTO complaints
-          (reference_no, user_id, category, title, description, latitude, longitude, location_name, phone, image_url)
-          
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-          
-          RETURNING *
-          `,
-          [
-            referenceNo,
-            user_id,
-            category,
-            title,
-            description,
-            latitude,
-            longitude,
-            location_name,
-            phone,
-            image_url,
-          ]
-        );
-console.log("✅ Complaint inserted successfully");
-
-       
+        RETURNING *
+        `,
+        [
+          referenceNo,
+          user_id,
+          category,
+          title,
+          description,
+          latitude,
+          longitude,
+          location_name,
+          phone,
+          image_url
+        ]
+      );
 
 
-        // Get user's full name
+      console.log("✅ Complaint inserted successfully");
+
+
       const userResult = await pool.query(
-`
-SELECT full_name,email
-FROM users
-WHERE user_id=$1
-`,
-[user_id]
-);
-
-if(userResult.rows.length===0){
-
-    return res.status(404).json({
-        message:"User not found"
-    });
-
-}
-
-const user=userResult.rows[0];
-
-console.log("✅ User Found");
-console.log(user);
-
-        //email
-try{
-
-    console.log("📧 Sending Email...");
-
-    await sendEmail(
-        user.email,
-        "Complaint Submitted Successfully",
         `
-        <div style="font-family:Arial;padding:20px">
-
-        <h2>Complaint Submitted Successfully</h2>
-
-        <p>Hello <b>${user.full_name}</b>,</p>
-
-        <p>Your complaint has been received.</p>
-
-        <p><b>Reference Number:</b> ${referenceNo}</p>
-
-        <p><b>Category:</b> ${category}</p>
-
-        <p><b>Status:</b> Pending</p>
-
-        </div>
-        `
-    );
-
-    console.log("✅ Email Sent");
-
-}catch(err){
-
-    console.log("❌ Email Error");
-    console.log(err);
-
-}
-
-console.log("✅ Returning Success Response");
-
-res.status(201).json({
-  success: true,
-  complaintId: newComplaint.rows[0].complaint_id,
-  referenceNo: newComplaint.rows[0].reference_no,
-  userName: user.full_name,
-});
+        SELECT full_name,email
+        FROM users
+        WHERE user_id=$1
+        `,
+        [user_id]
+      );
 
 
-// AFTER sending response
+      if(userResult.rows.length===0){
 
-try {
+        return res.status(404).json({
+          message:"User not found"
+        });
 
-    await sendEmail(
-        user.email,
-        "Complaint Submitted Successfully",
-        `
-        <div>
-        <h2>Complaint Submitted Successfully</h2>
-
-        <p>Hello ${user.full_name}</p>
-
-        <p>Reference Number: ${referenceNo}</p>
-
-        <p>Status: Pending</p>
-
-        </div>
-        `
-    );
-
-    console.log("✅ Email Sent");
-
-} catch(err){
-
-    console.log("❌ Email Error",err);
-
-}
+      }
 
 
-try {
+      const user=userResult.rows[0];
 
-    await pool.query(
+
+      // Save notification first
+
+      await pool.query(
         `
         INSERT INTO notifications
-        (user_id, complaint_id, title, message)
+        (
+          user_id,
+          complaint_id,
+          title,
+          message
+        )
+
         VALUES ($1,$2,$3,$4)
         `,
         [
           user_id,
           newComplaint.rows[0].complaint_id,
           "Complaint Submitted",
-          `Your complaint "${title}" has been submitted successfully. Reference Number: ${referenceNo}.`
+          `Your complaint "${title}" has been submitted successfully. Reference Number: ${referenceNo}`
         ]
-    );
+      );
 
-} catch(err){
 
-    console.log("Notification error",err);
+      // Send response immediately
 
-}
+      res.status(201).json({
 
-      } catch (error: any) {
+        success:true,
 
-    console.error("FULL BACKEND ERROR:");
-    console.error(error);
+        complaintId:
+        newComplaint.rows[0].complaint_id,
 
-    res.status(500).json({
-      message: error.message,
-    });
-  }
+        referenceNo:
+        newComplaint.rows[0].reference_no,
+
+        userName:
+        user.full_name
+
+      });
+
+
+
+      // Send email in background
+
+      sendEmail(
+        user.email,
+        "Complaint Submitted Successfully",
+        `
+        <div>
+          <h2>Complaint Submitted Successfully</h2>
+
+          <p>Hello ${user.full_name}</p>
+
+          <p>Reference Number: ${referenceNo}</p>
+
+          <p>Status: Pending</p>
+
+        </div>
+        `
+      )
+      .then(()=>{
+
+        console.log("✅ Email Sent");
+
+      })
+      .catch((err)=>{
+
+        console.log("❌ Email Error",err);
+
+      });
+
+
     }
-  );
+    catch(error:any){
 
-  export default router;
+      console.log("FULL BACKEND ERROR:");
+      console.log(error);
+
+
+      res.status(500).json({
+
+        message:error.message
+
+      });
+
+    }
+
+  }
+);
+   export default router;
