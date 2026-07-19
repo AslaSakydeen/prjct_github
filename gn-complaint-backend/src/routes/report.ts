@@ -32,6 +32,7 @@ c.priority,
 c.status,
 c.location_name,
 c.image_url,
+c.resolution_proof,
 c.complaint_date,
 c.admin_response,
 

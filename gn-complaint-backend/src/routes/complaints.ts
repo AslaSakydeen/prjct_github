@@ -82,7 +82,7 @@ router.put(
     try {
       const { id } = req.params;
 
-      const { status, admin_response } = req.body;
+      const { status, admin_response, priority } = req.body;
 
       const file = req.file as Express.Multer.File;
 
@@ -96,15 +96,16 @@ router.put(
         SET
           status = $1,
           admin_response = $2,
-          resolution_proof =
-            COALESCE($3, resolution_proof)
-        WHERE complaint_id = $4
+          resolution_proof = COALESCE($3, resolution_proof),
+          priority = COALESCE($4, priority)
+        WHERE complaint_id = $5
         RETURNING *
         `,
         [
           status,
           admin_response,
           resolution_proof,
+          priority,
           id,
         ]
       );
@@ -148,6 +149,24 @@ if (complaintInfo.rows.length > 0) {
     }`
   ]
 );
+
+  // Send status update email to user
+  const emailResult = await sendEmail(
+    user.email,
+    "Complaint Status Updated",
+    `
+    <h2>Complaint Status Updated</h2>
+    <p>Hello ${user.full_name},</p>
+    <p>Your complaint "<strong>${user.title}</strong>" (Reference Number: ${user.reference_no}) status has been updated to <strong>${status}</strong>.</p>
+    ${admin_response ? `<p><strong>Officer Comment:</strong> ${admin_response}</p>` : ""}
+    <p>Thank you,<br/>GN Complaint Management System</p>
+    `
+  );
+  if (emailResult) {
+    console.log("✅ Update Email Sent Successfully");
+  } else {
+    console.log("❌ Update Email Failed");
+  }
 }
  res.json({
         success: true,
