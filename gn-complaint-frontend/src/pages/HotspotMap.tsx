@@ -2,8 +2,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { useEffect, useState, useMemo } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // ─── Fix default Leaflet icons ───────────────────────────────────────────────
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -81,21 +81,13 @@ function FlyToSriLanka() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function HotspotMap() {
-  const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
   const [complaints, setComplaints] = useState<ComplaintData[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   const [catFilter,  setCatFilter]  = useState("All");
   const [statFilter, setStatFilter] = useState("All");
   const [priFilter,  setPriFilter]  = useState("All");
 
-  // scroll for nav
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", h);
-    return () => window.removeEventListener("scroll", h);
-  }, []);
 
   // fetch
   useEffect(() => {
@@ -192,70 +184,67 @@ export default function HotspotMap() {
           --shadow-md: 0 8px 32px rgba(21,128,61,0.14);
         }
         html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--ink); }
+        body { font-family: Arial, Helvetica, sans-serif; background: var(--sand); color: var(--ink); }
+        
 
-        /* NAV */
-        .hm-nav-wrap { position:fixed; top:0; left:0; right:0; z-index:400; padding:12px 24px; }
-        .hm-nav-wrap.scrolled .hm-navbar { box-shadow: var(--shadow-md); background: rgba(255,255,255,0.98); }
-        .hm-navbar {
-          max-width: 1300px; margin: 0 auto;
-          background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
-          border-radius: 18px; padding: 12px 26px;
-          display: flex; align-items: center; justify-content: space-between;
-          border: 1px solid rgba(21,128,61,0.1); transition: all 0.3s;
-        }
-        .hm-brand { display:flex; align-items:center; gap:10px; cursor:pointer; }
-        .hm-brand-mark {
-          width:40px; height:40px;
-          background: linear-gradient(135deg, var(--g800), var(--g600));
-          border-radius:12px; display:flex; align-items:center; justify-content:center;
-          font-family:'Playfair Display',serif; font-weight:800; font-size:17px; color:white;
-          box-shadow: 0 4px 12px rgba(21,128,61,0.32);
-        }
-        .hm-brand-name { font-weight:700; font-size:1.1rem; color:var(--ink); letter-spacing:-0.02em; }
-        .hm-brand-name span { color: var(--g700); }
-        .hm-nav-links { display:flex; align-items:center; gap:4px; list-style:none; }
-        .hm-nav-links li span {
-          display:block; padding:7px 15px; font-size:0.875rem; font-weight:500;
-          color: var(--ink-soft); border-radius:9px; cursor:pointer; transition: all 0.2s;
-        }
-        .hm-nav-links li span:hover { color: var(--g700); background: var(--g50); }
-        .hm-nav-links li.active span { background: var(--g800); color: white; font-weight:600; }
-        .hm-nav-right { display:flex; align-items:center; gap:10px; }
-        .hm-btn-submit {
-          display:inline-flex; align-items:center; gap:6px;
-          padding: 8px 18px;
-          background: linear-gradient(135deg, var(--g800), var(--g600));
-          color:white; font-size:0.875rem; font-weight:600;
-          border:none; border-radius:10px; cursor:pointer;
-          box-shadow: 0 4px 12px rgba(21,128,61,0.28); transition: all 0.25s;
-        }
-        .hm-btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(21,128,61,0.36); }
-        .hm-btn-logout {
-          padding:7px 16px; font-size:0.875rem; font-weight:500;
-          color:var(--ink-soft); background:none;
-          border:1.5px solid rgba(0,0,0,0.12); border-radius:9px; cursor:pointer;
-          transition: all 0.2s; font-family: inherit;
-        }
-        .hm-btn-logout:hover { border-color: var(--g600); color: var(--g700); background: var(--g50); }
+
+.dashboard{
+display:flex;
+min-height:100vh;
+background:#f4f3ef;
+}
+
+.sidebar{
+width:250px;
+background:#003b12;
+color:white;
+padding:30px 20px;
+}
+
+.sidebar h1{
+font-size:34px;
+margin-bottom:5px;
+}
+
+.sidebar p{
+margin-bottom:50px;
+}
+
+.sidebar ul{
+list-style:none;
+}
+
+.sidebar ul li{
+padding:14px 18px;
+margin-bottom:18px;
+border-radius:10px;
+cursor:pointer;
+font-size:18px;
+}
+
+.sidebar ul li.active{
+background:#1d8b24;
+}
+
+.main{
+flex:1;
+
+}
+
 
         /* PAGE */
-        .hm-page {
-          min-height:100vh; padding: 100px 24px 60px;
-          background: linear-gradient(180deg, #f0fdf4 0%, #faf8f3 100%);
-        }
-        .hm-inner { max-width: 1300px; margin: 0 auto; }
+        .hm-page{
+    min-height:100vh;
+     padding:20px 24px;
+    background:linear-gradient(180deg,#f0fdf4 0%,#faf8f3 100%);
+}
+        .hm-inner{
+    width:100%;
+}
 
         /* HERO */
         .hm-hero { text-align:center; margin-bottom:40px; animation: fadeUp 0.6s ease; }
         @keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: none; } }
-        .hm-hero-badge {
-          display:inline-flex; align-items:center; gap:8px;
-          padding: 6px 16px; border-radius:20px;
-          background: var(--g50); border:1px solid var(--g100);
-          font-size:0.8rem; font-weight:600; color: var(--g700);
-          margin-bottom:16px; letter-spacing:0.04em;
-        }
         .hm-hero h1 {
           font-family:'Playfair Display',serif;
           font-size: clamp(2rem, 5vw, 3.2rem);
@@ -364,45 +353,69 @@ export default function HotspotMap() {
         @media (max-width:600px) {
           .hm-stats { grid-template-columns: 1fr 1fr; }
           .hm-controls { flex-direction:column; }
-          .hm-nav-links { display:none; }
+          
         }
       `}</style>
+<div className="dashboard">
 
-      {/* ── NAV ── */}
-      <div className={`hm-nav-wrap ${scrolled ? "scrolled" : ""}`}>
-        <nav className="hm-navbar">
-          <div className="hm-brand" onClick={() => navigate("/home")}>
-            <div className="hm-brand-mark">CC</div>
-            <span className="hm-brand-name">Complaint<span>Core</span></span>
-          </div>
+  {/* SIDEBAR */}
+  <div className="sidebar">
 
-          <ul className="hm-nav-links">
-            <li><span onClick={() => navigate("/home")}>Home</span></li>
-            <li><span onClick={() => navigate("/how")}>How it Works</span></li>
-            <li><span onClick={() => navigate("/track")}>Track Complaint</span></li>
-            <li className="active"><span>Hotspot Map</span></li>
-            <li><span onClick={() => navigate("/reviews")}>Reviews</span></li>
-          </ul>
+    <h1>Complaint Core</h1>
+    <p>Administration Panel</p>
 
-          <div className="hm-nav-right">
-            <button className="hm-btn-submit" onClick={() => navigate("/complaint")}>
-              + Submit Complaint
-            </button>
-            <button className="hm-btn-logout" onClick={() => {
-              localStorage.removeItem("token");
-              navigate("/");
-            }}>Logout</button>
-          </div>
-        </nav>
-      </div>
+    <ul>
 
+      <li onClick={() => navigate("/adminDash")}>
+        Dashboard
+      </li>
+
+      <li onClick={() => navigate("/manageUser")}>
+        Manage Users
+      </li>
+
+      <li onClick={() => navigate("/manageComplaint")}>
+        Manage Complaint
+      </li>
+
+      <li onClick={() => navigate("/manageReview")}>
+        Manage Review
+      </li>
+
+      <li
+        className="active"
+        onClick={() => navigate("/hotspot")}
+      >
+        Hotspot Map
+      </li>
+
+      <li onClick={() => navigate("/manageNotifications")}>
+        Notification
+      </li>
+
+      <li>Settings</li>
+
+      <li
+        onClick={() => {
+          localStorage.removeItem("token");
+          navigate("/");
+        }}
+      >
+        Logout
+      </li>
+
+    </ul>
+
+  </div>
+
+  
+<main className="main">
       {/* ── PAGE ── */}
       <div className="hm-page">
         <div className="hm-inner">
 
           {/* HERO */}
           <div className="hm-hero">
-            <div className="hm-hero-badge">🗺️ Live Intelligence</div>
             <h1>Complaint <span>Hotspot</span> Map</h1>
             <p>
               Visualise community issues across your region in real-time.
@@ -515,7 +528,7 @@ export default function HotspotMap() {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-
+  
                 {/* Hotspot circles */}
                 {hotspots.map((hs, i) => (
                   <Circle
@@ -612,6 +625,9 @@ export default function HotspotMap() {
           )}
         </div>
       </div>
+          </main>
+          </div>
     </>
+    
   );
 }

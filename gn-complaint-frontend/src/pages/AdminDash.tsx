@@ -319,8 +319,7 @@ Manage Complaint
 Manage Review
 </li>
 
-<li onClick={() => navigate("/hotspot")}>
-   Hotspot Map
+<li onClick={() => navigate("/hotspot")}> Hotspot Map
 </li>
 
 <li onClick={() => navigate("/manageNotifications")}>Notification</li>
