@@ -11,9 +11,10 @@ import ManageUser from "./pages/ManageUser";
 import AdComplaint from "./pages/ManageComplaint";
 import TrackResult from "./pages/TrackResults";
 import Navbar from "./pages/Navbar"; 
-import ManageReview from "./pages/ManageReview"
+import ManageReview from "./pages/ManageReview";
 import Report from "./pages/Report";
 import ManageNotifications from "./pages/Notifications";
+import HotspotMap from "./pages/HotspotMap";
 
 export default function App() {
   return (
@@ -35,8 +36,8 @@ export default function App() {
       <Route path="/manageComplaint" element={<AdComplaint />} />
        <Route path="/manageReview" element={<ManageReview />} />
       <Route path="/Report/:id" element={<Report />} />
-      <Route path="/manageNotifications" element={<ManageNotifications />}
-/>
+      <Route path="/manageNotifications" element={<ManageNotifications />} />
+      <Route path="/hotspot" element={<HotspotMap />} />
     </Routes>
   );
 }

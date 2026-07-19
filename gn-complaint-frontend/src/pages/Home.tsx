@@ -496,7 +496,6 @@ export default function Home() {
             <li><span onClick={() => navigate("/how")}>How it Works</span></li>
             <li><span onClick={() => navigate("/track")}>My Complaints</span></li>
             <li><span onClick={() => navigate("/reviews")}>Reviews</span></li>
-            {/* <li><span onClick={() => navigate("/adminDash")}>Admin Dashboard</span></li> */}
           </ul>
 
           <div className="nav-right">

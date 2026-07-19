@@ -18,7 +18,7 @@ export default function ManageReview() {
 
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
 
   const [selectedReview, setSelectedReview] =
     useState<Review | null>(null);
@@ -40,7 +40,7 @@ export default function ManageReview() {
     try {
 
       const res = await axios.get(
-        "https://prjctgithub-production.up.railway.app/api/review"
+        `${import.meta.env.VITE_API_URL}/api/review`
       );
 
       setReviews(res.data);
@@ -99,7 +99,7 @@ const handleReply = async () => {
 
     await axios.put(
 
-      `https://prjctgithub-production.up.railway.app/api/review/${selectedReview.review_id}`,
+      `${import.meta.env.VITE_API_URL}/api/review/${selectedReview.review_id}`,
 
       {
         admin_reply: reply
@@ -132,7 +132,7 @@ const handleDelete = async () => {
 
     await axios.delete(
 
-      `https://prjctgithub-production.up.railway.app/api/review/${selectedReview.review_id}`
+      `${import.meta.env.VITE_API_URL}/api/review/${selectedReview.review_id}`
 
     );
 
@@ -454,12 +454,23 @@ Manage Complaint
 Manage Review
 </li>
 
+<li onClick={() => navigate("/hotspot")}>
+🗺️ Hotspot Map
+</li>
+
 <li>
 Notification
 </li>
 
 <li>
 Settings
+</li>
+
+<li onClick={() => {
+  localStorage.removeItem("token");
+  navigate("/");
+}}>
+Logout
 </li>
 
 </ul>

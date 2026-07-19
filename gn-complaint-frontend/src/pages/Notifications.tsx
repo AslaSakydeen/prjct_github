@@ -23,7 +23,7 @@ export default function ManageNotifications() {
   const fetchNotifications = async () => {
     try {
       const res = await axios.get(
-        "https://prjctgithub-production.up.railway.app/api/notifications"
+        `${import.meta.env.VITE_API_URL}/api/notifications`
       );
 
       setNotifications(res.data);

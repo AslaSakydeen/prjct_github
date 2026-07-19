@@ -21,7 +21,7 @@ interface Report {
   complaint_date:string;
 
   admin_response:string;
-
+  resolution_proof?: string;
   full_name:string;
   email:string;
 
@@ -57,7 +57,7 @@ try{
 
 const res=await axios.get(
 
-`https://prjctgithub-production.up.railway.app/api/report/${id}`
+`${import.meta.env.VITE_API_URL}/api/report/${id}`
 
 );
 
@@ -203,7 +203,12 @@ width:30%;
  
 padding:15px;
 border-radius:10px;
+text-align: left;
 
+}
+
+.page-break {
+  page-break-before: always;
 }
 
 
@@ -529,7 +534,7 @@ Description
 
 
 
-<h3 className="section">
+<h3 className="section page-break">
 
 Evidence
 
@@ -539,19 +544,35 @@ Evidence
 {report.image_url ? (
   <img
     className="complaint-image"
-    src={`https://prjctgithub-production.up.railway.app/uploads/${report.image_url}`}
+    src={`${import.meta.env.VITE_API_URL}/uploads/${report.image_url}`}
     alt="Complaint"
+    onError={(e) => {
+      const target = e.target as HTMLImageElement;
+      if (!target.src.includes("prjctgithub-production")) {
+        target.src = `https://prjctgithub-production.up.railway.app/uploads/${report.image_url}`;
+      }
+    }}
   />
 ) : (
   <p className="no-image">No complaint image available.</p>
 )}
 
-
-
-
-
-
-
+{report.status === "Resolved" && report.resolution_proof && (
+  <>
+    <h3 className="section">Resolution Proof</h3>
+    <img
+      className="complaint-image"
+      src={`${import.meta.env.VITE_API_URL}/uploads/${report.resolution_proof}`}
+      alt="Resolution Proof"
+      onError={(e) => {
+        const target = e.target as HTMLImageElement;
+        if (!target.src.includes("prjctgithub-production")) {
+          target.src = `https://prjctgithub-production.up.railway.app/uploads/${report.resolution_proof}`;
+        }
+      }}
+    />
+  </>
+)}
 
 <h3 className="section">
 
@@ -559,19 +580,18 @@ Administrative Response
 
 </h3>
 
-
-
-<div className="description">
-
-
-{
-
-report.admin_response ?
-
-report.admin_response:"No response added yet"
-
-}
-</div>
+<table>
+  <tbody>
+    <tr>
+      <td>Response Comment</td>
+      <td>
+        <div className="description">
+          {report.admin_response ? report.admin_response : "No response added yet"}
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 
 <div className="buttons">

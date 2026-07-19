@@ -22,7 +22,7 @@ const fetchDashboardData = async () => {
 
     // FETCH COMPLAINTS
     const complaintsRes = await axios.get(
-      "http://lprjctgithub-production.up.railway.app/api/complaints"
+      `${import.meta.env.VITE_API_URL}/api/complaints`
     );
 
     const complaintsData = complaintsRes.data;
@@ -51,7 +51,7 @@ const fetchDashboardData = async () => {
 
     // FETCH USERS
     const usersRes = await axios.get(
-      "https://prjctgithub-production.up.railway.app/api/users"
+      `${import.meta.env.VITE_API_URL}/api/users`
     );
 
     setTotalUsers(usersRes.data.length);
@@ -319,9 +319,20 @@ Manage Complaint
 Manage Review
 </li>
 
+<li onClick={() => navigate("/hotspot")}>
+   Hotspot Map
+</li>
+
 <li onClick={() => navigate("/manageNotifications")}>Notification</li>
 
 <li>Settings</li>
+
+<li onClick={() => {
+  localStorage.removeItem("token");
+  navigate("/");
+}}>
+  Logout
+</li>
 
 </ul>
 
@@ -356,7 +367,7 @@ Manage Review
               <h1>{totalComplaints}</h1>
 
               <div className="progress">
-                <div style={{ width: "75%" }}></div>
+                <div style={{ width: "100%" }}></div>
               </div>
             </div>
 
@@ -367,7 +378,7 @@ Manage Review
               <div className="progress">
                 <div
                   style={{
-                    width: "45%",
+                    width: `${totalComplaints > 0 ? (pendingReview / totalComplaints) * 100 : 0}%`,
                     background: "orange",
                   }}
                 ></div>
@@ -379,7 +390,7 @@ Manage Review
               <h1>{inProgress}</h1>
 
               <div className="progress">
-                <div style={{ width: "60%" }}></div>
+                <div style={{ width: `${totalComplaints > 0 ? (inProgress / totalComplaints) * 100 : 0}%` }}></div>
               </div>
             </div>
 
@@ -388,7 +399,7 @@ Manage Review
               <h1>{totalUsers}</h1>
 
               <div className="progress">
-                <div style={{ width: "85%" }}></div>
+                <div style={{ width: "100%" }}></div>
               </div>
             </div>
 
@@ -446,7 +457,7 @@ Manage Review
                           }
                         `}
                       >
-                        {item.priority}
+                        {item.priority || "Not Assigned"}
                       </span>
 
                     </td>

@@ -37,7 +37,7 @@ export default function ManageUsers() {
     try {
 
       const res = await axios.get(
-        "https://prjctgithub-production.up.railway.app/api/users"
+        `${import.meta.env.VITE_API_URL}/api/users`
       );
 
       setUsers(res.data);
@@ -71,7 +71,7 @@ export default function ManageUsers() {
   try {
 
     const res = await axios.put(
-      `https://prjctgithub-production.up.railway.app/api/users/${selectedUser.user_id}`,
+      `${import.meta.env.VITE_API_URL}/api/users/${selectedUser.user_id}`,
       {
         status: selectedUser.status,
       }
@@ -105,7 +105,7 @@ export default function ManageUsers() {
   try {
 
     const res = await axios.delete(
-      `https://prjctgithub-production.up.railway.app/api/users/${selectedUser.user_id}`
+      `${import.meta.env.VITE_API_URL}/api/users/${selectedUser.user_id}`
     );
 
     alert("User deleted successfully");
@@ -404,9 +404,20 @@ background:red;
 
   <li onClick={() => navigate("/manageReview")}>Manage Review</li>
 
+  <li onClick={() => navigate("/hotspot")}>
+    🗺️ Hotspot Map
+  </li>
+
   <li>Notification</li>
 
   <li>Settings</li>
+
+  <li onClick={() => {
+    localStorage.removeItem("token");
+    navigate("/");
+  }}>
+    Logout
+  </li>
 </ul>
         </div>
 

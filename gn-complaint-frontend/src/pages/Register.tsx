@@ -31,7 +31,7 @@ export default function Register() {
   try {
 
     await axios.post(
-      "https://prjctgithub-production.up.railway.app/api/auth/register",
+      `${import.meta.env.VITE_API_URL}/api/auth/register`,
       {
         name,
         email,

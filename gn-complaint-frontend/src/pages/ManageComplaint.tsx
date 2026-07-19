@@ -57,6 +57,9 @@ export default function ManageComplaint() {
   const [adminResponse, setAdminResponse] =
     useState("");
 
+  const [priority, setPriority] =
+    useState("");
+
     const [resolutionProof, setResolutionProof] =
   useState<File | null>(null);
 
@@ -72,7 +75,7 @@ export default function ManageComplaint() {
   const fetchComplaints = async () => {
     try {
       const res = await axios.get(
-        "https://prjctgithub-production.up.railway.app/api/complaints"
+        `${import.meta.env.VITE_API_URL}/api/complaints`
       );
 
       setComplaints(res.data);
@@ -104,25 +107,15 @@ export default function ManageComplaint() {
     }
   );
 
-  const updatePriority = async (
-    id: number,
-    priority: string
-) => {
-    await axios.put(
-        `https://prjctgithub-production.up.railway.app/api/complaints/${id}/priority`,
-        {
-            priority,
-        }
-    );
-
-    fetchComplaints();
-};
+ 
 
   // OPEN MODAL
   const openModal = (complaint: Complaint) => {
     setSelectedComplaint(complaint);
 
     setStatus(complaint.status);
+
+    setPriority(complaint.priority || "Not Assigned");
 
     setAdminResponse(
       complaint.admin_response || ""
@@ -144,7 +137,7 @@ export default function ManageComplaint() {
 
     formData.append("status", status);
     formData.append("admin_response",adminResponse);
-    formData.append("priority", selectedComplaint.priority);
+    formData.append("priority", priority);
 
     if (resolutionProof) {
       formData.append(
@@ -154,7 +147,7 @@ export default function ManageComplaint() {
     }
 
     const response = await axios.put(
-      `https://prjctgithub-production.up.railway.app/api/complaints/${selectedComplaint.complaint_id}`,
+      `${import.meta.env.VITE_API_URL}/api/complaints/${selectedComplaint.complaint_id}`,
       formData,
       {
         headers: {
@@ -183,7 +176,7 @@ export default function ManageComplaint() {
 
   try {
     const response = await axios.delete(
-      `https://prjctgithub-production.up.railway.app/api/complaints/${selectedComplaint.complaint_id}`
+      `${import.meta.env.VITE_API_URL}/api/complaints/${selectedComplaint.complaint_id}`
     );
 
     console.log(response.data);
@@ -462,8 +455,8 @@ color:#888;
 .map-link{
 margin-top:5px;
 font-size:13px;
-text-decoration:none;
-color:#0b5d13;
+text-decoration:underline;
+color:#0056b3;
 }
 
 .button-group{
@@ -473,14 +466,32 @@ gap:15px;
 margin-top:25px;
 }
 
-.cancel-btn{
-background:#d9d9d9;
-color:black;
+.cancel-btn,
+.save-btn {
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
 }
 
-.save-btn{
-background:#0b5d13;
-color:white;
+.cancel-btn {
+  background: #d9d9d9;
+  color: black;
+}
+
+.cancel-btn:hover {
+  background: #c7c7c7;
+}
+
+.save-btn {
+  background: #0d5c11;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #0a4a0e;
 }
 
 .delete-btn{
@@ -565,9 +576,20 @@ cursor:pointer;
               Manage Review
             </li>
 
+            <li onClick={() => navigate("/hotspot")}>
+              🗺️ Hotspot Map
+            </li>
+
             <li>Notification</li>
 
             <li>Settings</li>
+
+            <li onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/");
+            }}>
+              Logout
+            </li>
           </ul>
 
         </div>
@@ -687,7 +709,7 @@ cursor:pointer;
                       </td>
 
                       <td>
-                        {complaint.priority}
+                        {complaint.priority || "Not Assigned"}
                       </td>
 
                       <td>
@@ -775,18 +797,8 @@ Generate Report
  <label>Priority :</label>
 
 <select
-  value={selectedComplaint.priority || "Not Assigned"}
-  onChange={(e) => {
-    updatePriority(
-      selectedComplaint.complaint_id,
-      e.target.value
-    );
-
-    setSelectedComplaint({
-      ...selectedComplaint,
-      priority: e.target.value,
-    });
-  }}
+  value={priority}
+  onChange={(e) => setPriority(e.target.value)}
 >
   <option value="Not Assigned">Not Assigned</option>
   <option value="Low">Low</option>
@@ -890,9 +902,15 @@ Generate Report
 
       {selectedComplaint.image_url ? (
         <img
-          src={`https://prjctgithub-production.up.railway.app/uploads/${selectedComplaint.image_url}`}
+          src={`${import.meta.env.VITE_API_URL}/uploads/${selectedComplaint.image_url}`}
           alt="Complaint"
           className="complaint-image"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (!target.src.includes("prjctgithub-production")) {
+              target.src = `https://prjctgithub-production.up.railway.app/uploads/${selectedComplaint.image_url}`;
+            }
+          }}
         />
       ) : (
         <div className="no-image">

@@ -239,20 +239,10 @@ export default function TrackResult() {
 
   const [complaint, setComplaint] = useState<Complaint | null>(null);
 
-  const [scrolled, setScrolled] = useState(false);
-useEffect(() => {
-  const handleScroll = () => {
-    setScrolled(window.scrollY > 10);
-  };
-
-  window.addEventListener("scroll", handleScroll);
-
-  return () =>
-    window.removeEventListener("scroll", handleScroll);
-}, []);
+  
   useEffect(() => {
     fetch(
-      `https://prjctgithub-production.up.railway.app/api/track/${referenceNumber}`
+      `${import.meta.env.VITE_API_URL}/api/track/${referenceNumber}`
     )
       .then((res) => res.json())
       .then((data) => setComplaint(data))
@@ -342,7 +332,7 @@ useEffect(() => {
             <label>Uploaded Image</label>
 
            <img
-  src={`https://prjctgithub-production.up.railway.app/uploads/${complaint.image_url}`}
+  src={`${import.meta.env.VITE_API_URL}/uploads/${complaint.image_url}`}
   alt=""
   className="preview"
 />
@@ -354,7 +344,7 @@ useEffect(() => {
                 <label>Resolution Proof</label>
 
                 <img
-                  src={`https://prjctgithub-production.up.railway.app/uploads/${complaint.resolution_proof}`}
+                  src={`${import.meta.env.VITE_API_URL}/uploads/${complaint.resolution_proof}`}
                   alt=""
                   className="preview"
                 />

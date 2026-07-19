@@ -39,7 +39,7 @@ export default function Reviews() {
 
   const loadReviews = async () => {
   try {
-    const res = await fetch("https://prjctgithub-production.up.railway.app/api/review");
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/review`);
 
     console.log("Status:", res.status);
     console.log("Type:", res.headers.get("content-type"));
@@ -59,7 +59,7 @@ export default function Reviews() {
     const token = localStorage.getItem("token");
 
     const res = await fetch(
-      "https://prjctgithub-production.up.railway.app/api/review/can-review",
+      `${import.meta.env.VITE_API_URL}/api/review/can-review`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -88,7 +88,7 @@ export default function Reviews() {
   const token = localStorage.getItem("token");
 
   const res = await fetch(
-    "https://prjctgithub-production.up.railway.app/api/review",
+    `${import.meta.env.VITE_API_URL}/api/review`,
     {
       method: "POST",
       headers: {
@@ -553,7 +553,7 @@ className="review-card"
 
 <div className="admin-reply">
 
-<h4>Admin Reply</h4>
+<h4>Administrator Reply</h4>
 
 <p>{review.admin_reply}</p>
 

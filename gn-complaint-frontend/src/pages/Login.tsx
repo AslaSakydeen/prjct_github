@@ -10,7 +10,7 @@ export default function Login() {
   const handleLogin = async () => {
   try {
     const res = await axios.post(
-      "https://prjctgithub-production.up.railway.app/api/auth/login",
+      `${import.meta.env.VITE_API_URL}/api/auth/login`,
       {
         email,
         password,
