@@ -20,30 +20,34 @@ export const sendEmail = async (
   subject: string,
   html: string
 ) => {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.BREVO_API_KEY;
 
   if (apiKey) {
     try {
-      console.log("📧 Sending email via Resend API to:", to);
+      console.log("📧 Sending email via Brevo API to:", to);
       const response = await axios.post(
-        "https://api.resend.com/emails",
+        "https://api.brevo.com/v3/smtp/email",
         {
-          from: "Complaint System <onboarding@resend.dev>",
-          to: [to],
-          subject,
-          html,
+          sender: { 
+            name: "GN Complaint System", 
+            email: process.env.EMAIL_USER || "no-reply@gncomplaints.com" 
+          },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html,
         },
         {
           headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
+            "accept": "application/json",
+            "api-key": apiKey,
+            "content-type": "application/json",
           },
         }
       );
-      console.log("✅ Email sent successfully via Resend API:", response.data);
+      console.log("✅ Email sent successfully via Brevo API:", response.data);
       return true;
     } catch (error: any) {
-      console.log("❌ Resend Email Error");
+      console.log("❌ Brevo Email Error");
       if (error.response) {
         console.log(error.response.data);
       } else {
@@ -68,4 +72,5 @@ export const sendEmail = async (
       return false;
     }
   }
-};
+};
+
