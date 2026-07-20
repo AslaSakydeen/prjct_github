@@ -458,7 +458,7 @@ Manage Review
  Hotspot Map
 </li>
 
-<li>
+<li onClick={() => navigate("/manageNotifications")}>
 Notification
 </li>
 

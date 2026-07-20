@@ -580,7 +580,7 @@ cursor:pointer;
              Hotspot Map
             </li>
 
-            <li>Notification</li>
+            <li onClick={() => navigate("/manageNotifications")}>Notification</li>
 
             <li>Settings</li>
 

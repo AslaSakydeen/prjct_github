@@ -405,10 +405,12 @@ background:red;
   <li onClick={() => navigate("/manageReview")}>Manage Review</li>
 
   <li onClick={() => navigate("/hotspot")}>
-    🗺️ Hotspot Map
+  Hotspot Map
   </li>
 
-  <li>Notification</li>
+  <li onClick={() => navigate("/manageNotifications")}>
+    Notification
+  </li>
 
   <li>Settings</li>
 
@@ -448,8 +450,7 @@ background:red;
             <button>All Users</button>
             <button>Citizens</button>
             <button>Admin</button>
-            <button>Active Users</button>
-            <button>Blocked Users</button>
+            
           </div>
 
           {/* TABLE */}
@@ -462,7 +463,7 @@ background:red;
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Status</th>
+              
                 <th>Action</th>
               </tr>
             </thead>
@@ -477,7 +478,7 @@ background:red;
                   <td>{user.full_name}</td>
                   <td>{user.email}</td>
                   <td>{user.role}</td>
-                  <td>{user.status}</td>
+                  
 
                   <td>
                     <button

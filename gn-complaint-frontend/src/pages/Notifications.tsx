@@ -226,7 +226,9 @@ font-size:36px;
             >
               Manage Review
             </li>
-
+              <li onClick={() => navigate("/hotspot")}>
+  Hotspot Map
+  </li>
             <li
               className="active"
               onClick={() => navigate("/manageNotifications")}
@@ -237,7 +239,12 @@ font-size:36px;
             <li>
               Settings
             </li>
-
+             <li onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/");
+            }}>
+              Logout
+            </li>
           </ul>
 
         </div>
