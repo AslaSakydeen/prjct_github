@@ -466,13 +466,6 @@ return (
   margin-right: 10px;
   
   }
-  .btnn{
-  color: white;
-  background: #166534;
-  border: 2px solid #166534;
-  margin-right: 10px;
-  
-  }
       `}</style>
 
       <div className="container">
@@ -638,7 +631,7 @@ return (
         Copy Reference Number
       </button>
 
-      <button className="btnn" onClick={() => setShowSuccessModal(false)}>
+      <button className="btnnn" onClick={() => setShowSuccessModal(false)}>
         Close
       </button>
 
