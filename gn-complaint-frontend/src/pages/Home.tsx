@@ -204,9 +204,7 @@ const styles = `
   .notif-sub  { font-size:0.68rem; color:var(--ink-muted); font-weight:400; }
 
   /* HOW IT WORKS */
-  .how-section { padding:90px 24px; background:var(--green-950); position:relative; overflow:hidden; }
-  .how-section::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--green-700),transparent); }
-  .how-inner { max-width:1200px; margin:0 auto; }
+  .how-section { padding:90px 24px; background:var(--green-950); position:relative; overflow:hidden; }  .how-inner { max-width:1200px; margin:0 auto; }
   .section-eyebrow { font-size:0.75rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--green-400); margin-bottom:12px; }
   .section-title { font-family:'Playfair Display',serif; font-size:clamp(1.9rem,3.5vw,2.6rem); font-weight:800; color:white; letter-spacing:-0.025em; line-height:1.1; margin-bottom:56px; max-width:500px; }
   .steps-row { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; position:relative; }
@@ -420,11 +418,7 @@ const features = [
   { icon:"⭐", title:"Rate the Resolution",   desc:"After an issue is closed, rate the quality of the fix. Your feedback shapes how authorities respond next time."                             },
 ];
 
-const testimonials = [
-  { text:"I reported a pothole that had been there for months. Within 48 hours it was assigned, and fixed by the end of the week. I was genuinely impressed.", name:"Priya S.",  role:"Resident, Negombo",    color:"#166534", initials:"PS" },
-  { text:"CivicVoice gave our neighbourhood a real platform. We reported 12 issues in one week and 9 are already resolved. The community is more engaged than ever.", name:"Kamal F.", role:"Community Leader",      color:"#1d4e89", initials:"KF" },
-  { text:"The transparency is what I love most. I can see exactly where my complaint stands, who it's assigned to, and when to expect a resolution.", name:"Amara N.", role:"Local Business Owner", color:"#92400e", initials:"AN" },
-];
+
 const departments = [
   {
     icon: "🛣️",
@@ -739,28 +733,7 @@ to ensure faster responses and effective solutions.
         </div>
       </div>
 
-      {/* ── TESTIMONIALS ── */}
-      <section className="testi-section">
-        <div className="testi-inner">
-          <p className="section-eyebrow-green">Community voices</p>
-          <h2 className="section-title-dark">What residents are saying</h2>
-          <div className="testi-grid">
-            {testimonials.map((t, i) => (
-              <div className="testi-card" key={i}>
-                <div className="testi-quote">"</div>
-                <p className="testi-text">{t.text}</p>
-                <div className="testi-author">
-                  <div className="testi-avatar" style={{ background:t.color }}>{t.initials}</div>
-                  <div>
-                    <div className="testi-name">{t.name}</div>
-                    <div className="testi-role">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* ── CTA ── */}
       <section className="cta-section">
