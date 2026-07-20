@@ -577,7 +577,7 @@ cursor:pointer;
             </li>
 
             <li onClick={() => navigate("/hotspot")}>
-              🗺️ Hotspot Map
+             Hotspot Map
             </li>
 
             <li>Notification</li>
