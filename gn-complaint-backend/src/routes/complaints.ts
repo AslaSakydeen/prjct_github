@@ -150,8 +150,8 @@ if (complaintInfo.rows.length > 0) {
   ]
 );
 
-  // Send status update email to user
-  const emailResult = await sendEmail(
+  // Send status update email to user in background (non-blocking)
+  sendEmail(
     user.email,
     "Complaint Status Updated",
     `
@@ -161,12 +161,15 @@ if (complaintInfo.rows.length > 0) {
     ${admin_response ? `<p><strong>Officer Comment:</strong> ${admin_response}</p>` : ""}
     <p>Thank you,<br/>GN Complaint Management System</p>
     `
-  );
-  if (emailResult) {
-    console.log("✅ Update Email Sent Successfully");
-  } else {
-    console.log("❌ Update Email Failed");
-  }
+  ).then((emailResult) => {
+    if (emailResult) {
+      console.log("✅ Update Email Sent Successfully");
+    } else {
+      console.log("❌ Update Email Failed");
+    }
+  }).catch((err) => {
+    console.error("❌ Background Email Error:", err);
+  });
 }
  res.json({
         success: true,
@@ -338,24 +341,25 @@ router.post(
 
 
 
-      // Send email in background
-const emailResult = await sendEmail(
-  user.email,
-  "Complaint Submitted Successfully",
-  `
-  <h2>Complaint Submitted Successfully</h2>
-  <p>Hello ${user.full_name}</p>
-  <p>Reference Number: ${referenceNo}</p>
-  <p>Status: Pending</p>
-  `
-);
-
-
-if(emailResult){
-  console.log("✅ Email Sent Successfully");
-}else{
-  console.log("❌ Email Failed");
-}
+      // Send email in background (non-blocking)
+      sendEmail(
+        user.email,
+        "Complaint Submitted Successfully",
+        `
+        <h2>Complaint Submitted Successfully</h2>
+        <p>Hello ${user.full_name}</p>
+        <p>Reference Number: ${referenceNo}</p>
+        <p>Status: Pending</p>
+        `
+      ).then((emailResult) => {
+        if(emailResult){
+          console.log("✅ Email Sent Successfully");
+        }else{
+          console.log("❌ Email Failed");
+        }
+      }).catch((err) => {
+        console.error("❌ Background Email Error:", err);
+      });
 
 
     }
