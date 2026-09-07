@@ -436,20 +436,20 @@ line-height:1.6;
 
           {/* MENU */}
           <ul className="nav-center">
-            <li className="active"><a href="#">Home</a></li>
+            <li onClick={() => navigate("/home")}>Home</li>
 
             <li>
               <span onClick={() => navigate("/how")}>How it Works</span>
             </li>
 
             <li>
-              <span onClick={() => navigate("/complaints")}>
+              <span onClick={() => navigate("/track")}>
                 My Complaints
               </span>
             </li>
 
-            <li>
-              <span onClick={() => navigate("/reviews")}>Reviews</span>
+            <li
+              className="active"><a href="#">Reviews</a>
             </li>
           </ul>
 

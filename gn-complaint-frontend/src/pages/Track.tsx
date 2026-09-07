@@ -357,16 +357,16 @@ export default function Track() {
 
           {/* MENU */}
           <ul className="nav-center">
-            <li className="active"><a href="#">Home</a></li>
+            <li onClick={() => navigate("/home")}>Home</li>
 
             <li>
               <span onClick={() => navigate("/how")}>How it Works</span>
             </li>
 
-            <li>
-              <span onClick={() => navigate("/complaints")}>
+            <li className="active"><a href="#">
+            
                 My Complaints
-              </span>
+              </a>
             </li>
 
             <li>
