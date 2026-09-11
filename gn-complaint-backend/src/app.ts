@@ -11,8 +11,8 @@ import reviewRoutes from "./routes/review";
 import reportRoutes from "./routes/report";
 import notificationRoutes from "./routes/notification";
 
-import fs from "fs";
-import path from "path";
+
+
 
 console.log("APP FILE LOADED");
 
@@ -21,13 +21,13 @@ dotenv.config();
 const app = express();
 
 // Image upload folder
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-const uploadDir = path.join(__dirname, "../uploads");
+// const uploadDir = path.join(__dirname, "../uploads");
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir);
+// }
 
 app.use(cors());
 app.use(express.json());
