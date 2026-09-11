@@ -1,62 +1,123 @@
-  import express, { Request, Response } from "express";
-  import { pool } from "../db";
-  import multer from "multer";
-  import path from "path";
-  import auth from "../middleware/auth";
-  import { sendEmail } from "../utils/sendEmail";
+import express, { Request, Response } from "express";
+import { pool } from "../db";
+import multer from "multer";
+import auth from "../middleware/auth";
+import { sendEmail } from "../utils/sendEmail";
+import { supabase } from "../supabase";
 
-  const router = express.Router();
+const router = express.Router();
 
-  // Generate Complaint Reference Number
-  const generateReferenceNumber = (): string => {
-    const date = new Date();
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `CMP-${yyyy}${mm}${dd}-${random}`;
-  };
+// Generate Complaint Reference Number
+const generateReferenceNumber = (): string => {
+  const date = new Date();
 
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
 
-  // STORAGE CONFIG
-  const storage = multer.diskStorage({
-    destination: (
-      req: Request,
-      file: Express.Multer.File,
-      cb: Function
-    ) => {
-      cb(null, "uploads/");
-    },
+  const random = Math.floor(1000 + Math.random() * 9000);
 
-    filename: (
-      req: Request,
-      file: Express.Multer.File,
-      cb: Function
-    ) => {
-      cb(null, Date.now() + path.extname(file.originalname));
-    },
-  });
-
-  const upload = multer({ storage });
+  return `CMP-${yyyy}${mm}${dd}-${random}`;
+};
 
 
-  // GET ALL COMPLAINTS
-  router.get("/complaints", async (req: Request, res: Response) => {
+// =====================================================
+// MULTER - MEMORY STORAGE
+// =====================================================
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB
+  },
+});
+
+
+// =====================================================
+// SUPABASE STORAGE UPLOAD FUNCTION
+// =====================================================
+
+const uploadToSupabase = async (
+  file: Express.Multer.File,
+  folder: string
+): Promise<string> => {
+
+  const safeFileName = file.originalname.replace(
+    /[^a-zA-Z0-9.-]/g,
+    "_"
+  );
+
+  const fileName = `${folder}/${Date.now()}-${safeFileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("complaint-images")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype,
+      upsert: false,
+    });
+
+  if (uploadError) {
+    console.error(
+      "❌ Supabase Storage Upload Error:",
+      uploadError
+    );
+
+    throw uploadError;
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("complaint-images")
+    .getPublicUrl(fileName);
+
+  console.log(
+    "✅ File uploaded to Supabase:",
+    publicUrlData.publicUrl
+  );
+
+  return publicUrlData.publicUrl;
+};
+
+
+// =====================================================
+// GET ALL COMPLAINTS
+// =====================================================
+
+router.get(
+  "/complaints",
+  async (req: Request, res: Response) => {
+
     try {
-      const data = await pool.query("SELECT * FROM complaints");
+
+      const data = await pool.query(
+        "SELECT * FROM complaints"
+      );
 
       res.json(data.rows);
+
     } catch (error) {
+
       console.log(error);
 
       res.status(500).json({
         message: "Server Error",
       });
+
     }
-  });
-  // DELETE COMPLAINT
-  router.delete("/complaints/:id", async (req, res) => {
+  }
+);
+
+
+// =====================================================
+// DELETE COMPLAINT
+// =====================================================
+
+router.delete(
+  "/complaints/:id",
+  async (req, res) => {
+
     try {
+
       const { id } = req.params;
 
       await pool.query(
@@ -64,29 +125,62 @@
         [id]
       );
 
-      res.json({ message: "Complaint deleted successfully" });
+      res.json({
+        message: "Complaint deleted successfully",
+      });
 
     } catch (error) {
+
       console.log("DELETE ERROR:", error);
-      res.status(500).json({ message: "Server Error" });
+
+      res.status(500).json({
+        message: "Server Error",
+      });
+
     }
-  });
-  
+  }
+);
+
+
+// =====================================================
+// UPDATE COMPLAINT / RESOLUTION PROOF
+// =====================================================
+
 router.put(
   "/complaints/:id",
+
   upload.single("resolutionProof"),
+
   async (req: Request, res: Response) => {
+
     try {
+
       const { id } = req.params;
 
-      const { status, admin_response, priority } = req.body;
+      const {
+        status,
+        admin_response,
+        priority,
+      } = req.body;
+
+
+      let resolution_proof: string | null = null;
 
       const file = req.file as Express.Multer.File;
 
-      const resolution_proof = file
-        ? file.filename
-        : null;
 
+      // Upload resolution proof to Supabase
+      if (file) {
+
+        resolution_proof = await uploadToSupabase(
+          file,
+          "resolution-proofs"
+        );
+
+      }
+
+
+      // Update complaint
       const result = await pool.query(
         `
         UPDATE complaints
@@ -106,116 +200,192 @@ router.put(
           id,
         ]
       );
-// Get complaint owner
-const complaintInfo = await pool.query(
-`
-SELECT
-u.user_id,
-u.full_name,
-u.email,
-c.complaint_id,
-c.reference_no,
-c.title
 
-FROM complaints c
 
-JOIN users u
-ON c.user_id = u.user_id
+      // Get complaint owner
+      const complaintInfo = await pool.query(
+        `
+        SELECT
+          u.user_id,
+          u.full_name,
+          u.email,
+          c.complaint_id,
+          c.reference_no,
+          c.title
+        FROM complaints c
+        JOIN users u
+          ON c.user_id = u.user_id
+        WHERE c.complaint_id = $1
+        `,
+        [id]
+      );
 
-WHERE c.complaint_id = $1
-`,
-[id]
-);
 
-if (complaintInfo.rows.length > 0) {
+      if (complaintInfo.rows.length > 0) {
 
-  const user = complaintInfo.rows[0];
-//save notifications to database
-  await pool.query(
-  `
-  INSERT INTO notifications
-  (user_id, complaint_id, title, message)
-  VALUES ($1, $2, $3, $4)
-  `,
-  [
-    user.user_id,
-    user.complaint_id,
-    "Complaint Updated",
-    `Your complaint "${user.title}" has been updated to "${status}". ${
-      admin_response ? "Response: " + admin_response : ""
-    }`
-  ]
-);
+        const user = complaintInfo.rows[0];
 
-  // Send status update email to user in background (non-blocking)
-  sendEmail(
-    user.email,
-    "Complaint Status Updated",
-    `
-    <h2>Complaint Status Updated</h2>
-    <p>Hello ${user.full_name},</p>
-    <p>Your complaint "<strong>${user.title}</strong>" (Reference Number: ${user.reference_no}) status has been updated to <strong>${status}</strong>.</p>
-    ${admin_response ? `<p><strong>Officer Comment:</strong> ${admin_response}</p>` : ""}
-    <p>Thank you,<br/>GN Complaint Management System</p>
-    `
-  ).then((emailResult) => {
-    if (emailResult) {
-      console.log("✅ Update Email Sent Successfully");
-    } else {
-      console.log("❌ Update Email Failed");
-    }
-  }).catch((err) => {
-    console.error("❌ Background Email Error:", err);
-  });
-}
- res.json({
+
+        // Save notification
+        await pool.query(
+          `
+          INSERT INTO notifications
+          (
+            user_id,
+            complaint_id,
+            title,
+            message
+          )
+          VALUES ($1, $2, $3, $4)
+          `,
+          [
+            user.user_id,
+            user.complaint_id,
+            "Complaint Updated",
+            `Your complaint "${user.title}" has been updated to "${status}". ${
+              admin_response
+                ? "Response: " + admin_response
+                : ""
+            }`,
+          ]
+        );
+
+
+        // Send update email
+        const emailResult = await sendEmail(
+          user.email,
+          "Complaint Status Updated",
+          `
+          <h2>Complaint Status Updated</h2>
+
+          <p>Hello ${user.full_name},</p>
+
+          <p>
+            Your complaint
+            "<strong>${user.title}</strong>"
+            (Reference Number:
+            ${user.reference_no})
+            status has been updated to
+            <strong>${status}</strong>.
+          </p>
+
+          ${
+            admin_response
+              ? `<p>
+                  <strong>Officer Comment:</strong>
+                  ${admin_response}
+                </p>`
+              : ""
+          }
+
+          <p>
+            Thank you,<br/>
+            GN Complaint Management System
+          </p>
+          `
+        );
+
+
+        if (emailResult) {
+
+          console.log(
+            "✅ Update Email Sent Successfully"
+          );
+
+        } else {
+
+          console.log(
+            "❌ Update Email Failed"
+          );
+
+        }
+
+      }
+
+
+      res.json({
         success: true,
         complaint: result.rows[0],
       });
 
+
     } catch (error) {
-      console.log("UPDATE ERROR:", error);
+
+      console.log(
+        "UPDATE ERROR:",
+        error
+      );
 
       res.status(500).json({
         message: "Server Error",
       });
+
     }
+
   }
 );
 
- router.put("/:id/priority", async (req, res) => {
+
+// =====================================================
+// UPDATE PRIORITY
+// =====================================================
+
+router.put(
+  "/:id/priority",
+  async (req, res) => {
+
     const { id } = req.params;
     const { priority } = req.body;
 
     try {
-        await pool.query(
-            `UPDATE complaints
-             SET priority=$1
-             WHERE complaint_id=$2`,
-            [priority, id]
-        );
 
-        res.json({
-            message: "Priority updated"
-        });
+      await pool.query(
+        `
+        UPDATE complaints
+        SET priority = $1
+        WHERE complaint_id = $2
+        `,
+        [
+          priority,
+          id,
+        ]
+      );
+
+      res.json({
+        message: "Priority updated",
+      });
+
     } catch (err) {
-        console.log(err);
-        res.status(500).json({
-            message: "Server Error"
-        });
+
+      console.log(err);
+
+      res.status(500).json({
+        message: "Server Error",
+      });
+
     }
-});
-     
+  }
+);
+
+
+// =====================================================
 // ADD COMPLAINT
+// =====================================================
+
 router.post(
   "/complaints",
+
   auth,
+
   upload.single("image"),
+
   async (req: any, res: Response) => {
 
     try {
 
-      const referenceNo = generateReferenceNumber();
+      const referenceNo =
+        generateReferenceNumber();
+
 
       const {
         category,
@@ -228,75 +398,111 @@ router.post(
       } = req.body;
 
 
-      const user_id = req.user.user_id;
+      const user_id =
+        req.user.user_id;
 
 
-      const file = req.file as Express.Multer.File;
+      // =================================================
+      // UPLOAD COMPLAINT IMAGE
+      // =================================================
 
-      const image_url = file ? file.filename : null;
+      let image_url: string | null = null;
+
+      const file =
+        req.file as Express.Multer.File;
 
 
-      const newComplaint = await pool.query(
-        `
-        INSERT INTO complaints
-        (
-          reference_no,
-          user_id,
-          category,
-          title,
-          description,
-          latitude,
-          longitude,
-          location_name,
-          phone,
-          image_url
-        )
+      if (file) {
 
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        image_url =
+          await uploadToSupabase(
+            file,
+            "complaints"
+          );
 
-        RETURNING *
-        `,
-        [
-          referenceNo,
-          user_id,
-          category,
-          title,
-          description,
-          latitude,
-          longitude,
-          location_name,
-          phone,
-          image_url
-        ]
+      }
+
+
+      // =================================================
+      // INSERT COMPLAINT
+      // =================================================
+
+      const newComplaint =
+        await pool.query(
+          `
+          INSERT INTO complaints
+          (
+            reference_no,
+            user_id,
+            category,
+            title,
+            description,
+            latitude,
+            longitude,
+            location_name,
+            phone,
+            image_url
+          )
+
+          VALUES
+          (
+            $1,$2,$3,$4,$5,
+            $6,$7,$8,$9,$10
+          )
+
+          RETURNING *
+          `,
+          [
+            referenceNo,
+            user_id,
+            category,
+            title,
+            description,
+            latitude,
+            longitude,
+            location_name,
+            phone,
+            image_url,
+          ]
+        );
+
+
+      console.log(
+        "✅ Complaint inserted successfully"
       );
 
 
-      console.log("✅ Complaint inserted successfully");
+      // =================================================
+      // GET USER
+      // =================================================
+
+      const userResult =
+        await pool.query(
+          `
+          SELECT full_name, email
+          FROM users
+          WHERE user_id = $1
+          `,
+          [user_id]
+        );
 
 
-      const userResult = await pool.query(
-        `
-        SELECT full_name,email
-        FROM users
-        WHERE user_id=$1
-        `,
-        [user_id]
-      );
-
-
-      if(userResult.rows.length===0){
+      if (userResult.rows.length === 0) {
 
         return res.status(404).json({
-          message:"User not found"
+          message: "User not found",
         });
 
       }
 
 
-      const user=userResult.rows[0];
+      const user =
+        userResult.rows[0];
 
 
-      // Save notification first
+      // =================================================
+      // SAVE NOTIFICATION
+      // =================================================
 
       await pool.query(
         `
@@ -308,67 +514,108 @@ router.post(
           message
         )
 
-        VALUES ($1,$2,$3,$4)
+        VALUES
+        ($1,$2,$3,$4)
         `,
         [
           user_id,
-          newComplaint.rows[0].complaint_id,
+          newComplaint.rows[0]
+            .complaint_id,
+
           "Complaint Submitted",
-          `Your complaint "${title}" has been submitted successfully. Reference Number: ${referenceNo}`
+
+          `Your complaint "${title}" has been submitted successfully. Reference Number: ${referenceNo}`,
         ]
       );
 
 
-      // Send response immediately
+      // =================================================
+      // SEND EMAIL
+      // =================================================
+
+      const emailResult =
+        await sendEmail(
+          user.email,
+
+          "Complaint Submitted Successfully",
+
+          `
+          <h2>
+            Complaint Submitted Successfully
+          </h2>
+
+          <p>
+            Hello ${user.full_name}
+          </p>
+
+          <p>
+            Reference Number:
+            <strong>${referenceNo}</strong>
+          </p>
+
+          <p>
+            Status:
+            <strong>Pending</strong>
+          </p>
+
+          <p>
+            Thank you,<br/>
+            GN Complaint Management System
+          </p>
+          `
+        );
+
+
+      if (emailResult) {
+
+        console.log(
+          "✅ Email Sent Successfully"
+        );
+
+      } else {
+
+        console.log(
+          "❌ Email Failed"
+        );
+
+      }
+
+
+      // =================================================
+      // SEND RESPONSE
+      // =================================================
 
       res.status(201).json({
 
-        success:true,
+        success: true,
 
         complaintId:
-        newComplaint.rows[0].complaint_id,
+          newComplaint.rows[0]
+            .complaint_id,
 
         referenceNo:
-        newComplaint.rows[0].reference_no,
- 
+          newComplaint.rows[0]
+            .reference_no,
+
         userName:
-        user.full_name
+          user.full_name,
 
       });
 
 
+    } catch (error: any) {
 
-      // Send email in background (non-blocking)
-      sendEmail(
-        user.email,
-        "Complaint Submitted Successfully",
-        `
-        <h2>Complaint Submitted Successfully</h2>
-        <p>Hello ${user.full_name}</p>
-        <p>Reference Number: ${referenceNo}</p>
-        <p>Status: Pending</p>
-        `
-      ).then((emailResult) => {
-        if(emailResult){
-          console.log("✅ Email Sent Successfully");
-        }else{
-          console.log("❌ Email Failed");
-        }
-      }).catch((err) => {
-        console.error("❌ Background Email Error:", err);
-      });
+      console.log(
+        "FULL BACKEND ERROR:"
+      );
 
-
-    }
-    catch(error:any){
-
-      console.log("FULL BACKEND ERROR:");
       console.log(error);
 
 
       res.status(500).json({
 
-        message:error.message
+        message:
+          error.message,
 
       });
 
@@ -376,4 +623,6 @@ router.post(
 
   }
 );
-   export default router;
+
+
+export default router;
