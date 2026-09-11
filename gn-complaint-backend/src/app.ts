@@ -11,32 +11,26 @@ import reviewRoutes from "./routes/review";
 import reportRoutes from "./routes/report";
 import notificationRoutes from "./routes/notification";
 
-
-
-
 console.log("APP FILE LOADED");
 
 dotenv.config();
 
 const app = express();
 
-// Image upload folder
-// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
-// const uploadDir = path.join(__dirname, "../uploads");
-
-// if (!fs.existsSync(uploadDir)) {
-//   fs.mkdirSync(uploadDir);
-// }
-
 app.use(
   cors({
-    origin: "https://prjct-github.vercel.app",
+    origin: [
+      "https://prjct-github.vercel.app",
+      "https://prjct-github-wyyz.vercel.app",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+app.options("*", cors());
+
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -73,6 +67,4 @@ pool.query("SELECT NOW()")
     );
   });
 
-
-// Export Express app
 export default app;
