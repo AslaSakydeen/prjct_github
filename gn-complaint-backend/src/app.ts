@@ -19,17 +19,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "https://prjct-github.vercel.app",
-      "https://prjct-github-wyyz.vercel.app",
-    ],
+    origin: "https://prjct-github.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-app.options("*", cors());
+
 
 app.use(express.json());
 
